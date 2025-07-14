@@ -35,7 +35,7 @@
 </head>
 <body>
   <div class="container"> 
-    <h1>Telegram Mini App</h1>
+    <h1>Telegram Mini App 202</h1>
     <div class="user" id="user-info">Loading user info...</div>
     <div class="apikey">
       <input type="password" id="api-key" placeholder="Enter OpenAI API Key" autocomplete="off" />
@@ -257,17 +257,7 @@ Respond ONLY with the filename (e.g., "events-moscow") without .json extension.`
           console.log('=== CREATING MAIN RESPONSE ===');
           const systemMessage = {
             role: 'system',
-            content: `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:
-
-${JSON.stringify(currentData, null, 2)}
-
-Your task is to help users with:
-- Booking events and venues
-- Finding professionals and experts
-- Hiring contractors for services
-- Accessing various local services
-
-Provide detailed, helpful responses based on the available data. Include prices, contact information, and relevant details.`
+            content: `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: When a user confirms they want to book something (says \"да\", \"хочу\", \"бронирую\", \"выбираю\", \"подтверждаю\", etc.), you MUST respond with:\n1. A confirmation message\n2. The exact item ID from the data (e.g., \"m1\", \"sp2\", \"mp1\", etc.)\n3. Start your response with \"BOOKING_CONFIRMED:\" followed by the item ID\n\nExample: \"BOOKING_CONFIRMED:m1 - Отлично! Бронирую для вас концерт группы 'Время'...\"\n\nProvide detailed, helpful responses based on the available data. Include prices, contact information, and relevant details.`
           };
           
           console.log('System message created, length:', systemMessage.content.length);
@@ -296,24 +286,15 @@ Provide detailed, helpful responses based on the available data. Include prices,
                     if (mainData.choices && mainData.choices[0] && mainData.choices[0].message) {
             const reply = mainData.choices[0].message.content.trim();
             console.log('GPT reply:', reply);
-            
-            // Always show booking button for assistant messages
+            // Check for booking confirmation pattern
             let bookingData = null;
-            if (currentData.data && currentData.data.length > 0) {
-              // Use the first item as booking data
-              bookingData = currentData.data[0];
-              console.log('Found booking data:', bookingData);
-            } else {
-              // Create default booking data if none found
-              bookingData = {
-                name: 'Выбранная услуга',
-                price_range: '1000-5000',
-                currency: 'RUB',
-                description: 'Услуга по вашему запросу'
-              };
-              console.log('Created default booking data');
+            let bookingId = null;
+            const match = reply.match(/BOOKING_CONFIRMED:([a-zA-Z0-9_-]+)/);
+            if (match && currentData.data && Array.isArray(currentData.data)) {
+              bookingId = match[1];
+              bookingData = currentData.data.find(item => item.id === bookingId);
+              console.log('Booking confirmed for ID:', bookingId, bookingData);
             }
-            
             appendMessage('assistant', reply, bookingData);
             messages.push({role: 'user', content});
             messages.push({role: 'assistant', content: reply});
@@ -440,17 +421,7 @@ Respond ONLY with the filename (e.g., "events-moscow") without .json extension.`
           console.log('=== CREATING MAIN RESPONSE ===');
           const systemMessage = {
             role: 'system',
-            content: `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:
-
-${JSON.stringify(currentData, null, 2)}
-
-Your task is to help users with:
-- Booking events and venues
-- Finding professionals and experts
-- Hiring contractors for services
-- Accessing various local services
-
-Provide detailed, helpful responses based on the available data. Include prices, contact information, and relevant details.`
+            content: `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: When a user confirms they want to book something (says \"да\", \"хочу\", \"бронирую\", \"выбираю\", \"подтверждаю\", etc.), you MUST respond with:\n1. A confirmation message\n2. The exact item ID from the data (e.g., \"m1\", \"sp2\", \"mp1\", etc.)\n3. Start your response with \"BOOKING_CONFIRMED:\" followed by the item ID\n\nExample: \"BOOKING_CONFIRMED:m1 - Отлично! Бронирую для вас концерт группы 'Время'...\"\n\nProvide detailed, helpful responses based on the available data. Include prices, contact information, and relevant details.`
           };
           
           console.log('System message created, length:', systemMessage.content.length);
@@ -479,7 +450,16 @@ Provide detailed, helpful responses based on the available data. Include prices,
           if (mainData.choices && mainData.choices[0] && mainData.choices[0].message) {
             const reply = mainData.choices[0].message.content.trim();
             console.log('GPT reply:', reply);
-            appendMessage('assistant', reply);
+            // Check for booking confirmation pattern
+            let bookingData = null;
+            let bookingId = null;
+            const match = reply.match(/BOOKING_CONFIRMED:([a-zA-Z0-9_-]+)/);
+            if (match && currentData.data && Array.isArray(currentData.data)) {
+              bookingId = match[1];
+              bookingData = currentData.data.find(item => item.id === bookingId);
+              console.log('Booking confirmed for ID:', bookingId, bookingData);
+            }
+            appendMessage('assistant', reply, bookingData);
             messages.push({role: 'user', content});
             messages.push({role: 'assistant', content: reply});
           } else {
