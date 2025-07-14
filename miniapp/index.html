@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telegram Mini App Demo</title>
+  <style>
+    body { font-family: 'Inter', Arial, sans-serif; background: #f9f9f9; color: #222; margin: 0; padding: 0; }
+    .container { max-width: 400px; margin: 3em auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 2em; text-align: center; }
+    h1 { color: #0088cc; }
+    button { background: #0088cc; color: #fff; border: none; border-radius: 6px; padding: 1em 2em; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 2em; transition: background 0.2s; }
+    button:hover { background: #005f7a; }
+    .user { margin: 1.5em 0; font-size: 1.1em; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Telegram Mini App</h1>
+    <div class="user" id="user-info">Loading user info...</div>
+    <button id="send-data">Send Data to Bot</button>
+  </div>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    // Display user info if available
+    const userInfo = document.getElementById('user-info');
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+      const user = tg.initDataUnsafe.user;
+      userInfo.textContent = `Hello, ${user.first_name} ${user.last_name || ''} (@${user.username || 'no username'})!`;
+    } else {
+      userInfo.textContent = 'User info not available.';
+    }
+    // Send data to bot
+    document.getElementById('send-data').onclick = function() {
+      tg.sendData('Hello from the Mini App!');
+      tg.close();
+    };
+  </script>
+</body>
+</html>
