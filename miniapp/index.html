@@ -3,27 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Telegram Mini App Demo</title>
+  <title>Telegram Mini App + ChatGPT Demo</title>
   <style>
     body { font-family: 'Inter', Arial, sans-serif; background: #f9f9f9; color: #222; margin: 0; padding: 0; }
-    .container { max-width: 400px; margin: 3em auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 2em; text-align: center; }
+    .container { max-width: 400px; margin: 2em auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 2em; text-align: center; }
     h1 { color: #0088cc; }
-    button { background: #0088cc; color: #fff; border: none; border-radius: 6px; padding: 1em 2em; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 2em; transition: background 0.2s; }
-    button:hover { background: #005f7a; }
     .user { margin: 1.5em 0; font-size: 1.1em; }
+    .apikey { margin-bottom: 1em; }
+    .apikey input { width: 80%; padding: 0.5em; border-radius: 4px; border: 1px solid #ccc; }
+    .chatbox { background: #f5f5f5; border-radius: 8px; padding: 1em; height: 200px; overflow-y: auto; text-align: left; margin-bottom: 1em; font-size: 0.98em; }
+    .msg.user { color: #0088cc; font-weight: 600; }
+    .msg.assistant { color: #222; }
+    .msg { margin-bottom: 0.7em; }
+    .input-row { display: flex; gap: 0.5em; }
+    .input-row input { flex: 1; padding: 0.5em; border-radius: 4px; border: 1px solid #ccc; }
+    .input-row button { background: #0088cc; color: #fff; border: none; border-radius: 4px; padding: 0.5em 1.2em; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    .input-row button:hover { background: #005f7a; }
+    .miniapp-btn { background: #0088cc; color: #fff; border: none; border-radius: 6px; padding: 1em 2em; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 2em; transition: background 0.2s; }
+    .miniapp-btn:hover { background: #005f7a; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Telegram Mini App</h1>
+    <h1>Telegram Mini App + ChatGPT</h1>
     <div class="user" id="user-info">Loading user info...</div>
-    <button id="send-data">Send Data to Bot</button>
+    <div class="apikey">
+      <input type="password" id="api-key" placeholder="Enter OpenAI API Key" autocomplete="off" />
+    </div>
+    <div class="chatbox" id="chatbox"></div>
+    <form id="chat-form" class="input-row" autocomplete="off">
+      <input type="text" id="user-input" placeholder="Type your message..." required />
+      <button type="submit">Send</button>
+    </form>
+    <button class="miniapp-btn" id="close-btn">Close Mini App</button>
   </div>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
+    // Telegram user info
     const tg = window.Telegram.WebApp;
     tg.ready();
-    // Display user info if available
     const userInfo = document.getElementById('user-info');
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const user = tg.initDataUnsafe.user;
@@ -31,9 +49,63 @@
     } else {
       userInfo.textContent = 'User info not available.';
     }
-    // Send data to bot
-    document.getElementById('send-data').onclick = function() {
-      tg.sendData('Hello from the Mini App!');
+    // ChatGPT logic
+    const chatbox = document.getElementById('chatbox');
+    const chatForm = document.getElementById('chat-form');
+    const userInput = document.getElementById('user-input');
+    const apiKeyInput = document.getElementById('api-key');
+    let messages = [
+      {role: 'system', content: 'You are ChatGPT, a helpful assistant.'}
+    ];
+    function appendMessage(role, content) {
+      const div = document.createElement('div');
+      div.className = 'msg ' + role;
+      div.textContent = (role === 'user' ? 'You: ' : 'ChatGPT: ') + content;
+      chatbox.appendChild(div);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+    chatForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const apiKey = apiKeyInput.value.trim();
+      if (!apiKey) {
+        alert('Please enter your OpenAI API key.');
+        return;
+      }
+      const content = userInput.value.trim();
+      if (!content) return;
+      appendMessage('user', content);
+      messages.push({role: 'user', content});
+      userInput.value = '';
+      appendMessage('assistant', '...');
+      try {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + apiKey
+          },
+          body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: messages
+          })
+        });
+        const data = await res.json();
+        // Remove the '...' placeholder
+        chatbox.removeChild(chatbox.lastChild);
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+          const reply = data.choices[0].message.content.trim();
+          appendMessage('assistant', reply);
+          messages.push({role: 'assistant', content: reply});
+        } else {
+          appendMessage('assistant', 'Error: ' + (data.error?.message || 'Unknown error'));
+        }
+      } catch (err) {
+        chatbox.removeChild(chatbox.lastChild);
+        appendMessage('assistant', 'Error: ' + err.message);
+      }
+    };
+    // Close Mini App
+    document.getElementById('close-btn').onclick = function() {
       tg.close();
     };
   </script>
