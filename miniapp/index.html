@@ -25,14 +25,14 @@
 </head>
 <body>
   <div class="container">
-    <h1>Telegram Mini App + ChatGPT</h1>
+    <h1>Telegram Mini App + Автобронирование</h1>
     <div class="user" id="user-info">Loading user info...</div>
     <div class="apikey">
       <input type="password" id="api-key" placeholder="Enter OpenAI API Key" autocomplete="off" />
     </div>
     <div class="chatbox" id="chatbox"></div>
     <form id="chat-form" class="input-row" autocomplete="off">
-      <input type="text" id="user-input" placeholder="Type your message..." required />
+      <input type="text" id="user-input" placeholder="Например: забронируй столик в ресторане на вечер" required />
       <button type="submit">Send</button>
     </form>
     <button class="miniapp-btn" id="close-btn">Close Mini App</button>
@@ -54,8 +54,48 @@
     const chatForm = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
     const apiKeyInput = document.getElementById('api-key');
+    
+    // Load events data
+    let eventsData = {};
+    fetch('/NOW/miniapp/events.json')
+      .then(response => response.json())
+      .then(data => {
+        eventsData = data;
+        // Update system message with events data
+        messages[0] = {
+          role: 'system', 
+          content: `You are an AI assistant for an auto-booking service. You have access to information about available events and venues.
+
+AVAILABLE EVENTS:
+${JSON.stringify(eventsData, null, 2)}
+
+Your task is to help users book events based on their requests. You can:
+- Suggest events based on user preferences
+- Provide details about venues, prices, and availability
+- Help with booking decisions
+- Answer questions about events
+
+Always provide relevant information from the events database when responding.`
+        };
+      })
+      .catch(error => {
+        console.error('Error loading events:', error);
+        appendMessage('assistant', 'Ошибка загрузки данных о мероприятиях. Попробуйте позже.');
+      });
+    
     let messages = [
-      {role: 'system', content: 'You are ChatGPT, a helpful assistant.'}
+      {role: 'system', content: `You are an AI assistant for an auto-booking service. You have access to information about available events and venues.
+
+AVAILABLE EVENTS:
+${JSON.stringify(eventsData, null, 2)}
+
+Your task is to help users book events based on their requests. You can:
+- Suggest events based on user preferences
+- Provide details about venues, prices, and availability
+- Help with booking decisions
+- Answer questions about events
+
+Always provide relevant information from the events database when responding.`}
     ];
     function appendMessage(role, content) {
       const div = document.createElement('div');

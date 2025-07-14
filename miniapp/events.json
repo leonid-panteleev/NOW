@@ -1,0 +1,108 @@
+{
+  "events": [
+    {
+      "id": "1",
+      "name": "Концерт группы 'Время'",
+      "type": "concert",
+      "date": "2024-01-20",
+      "time": "20:00",
+      "venue": "Клуб 'Метро', ул. Тверская, 15",
+      "available_seats": 45,
+      "price_range": "1500-3000",
+      "currency": "RUB",
+      "description": "Живая музыка, бар, танцпол",
+      "category": "music"
+    },
+    {
+      "id": "2",
+      "name": "Ресторан 'У Моря'",
+      "type": "restaurant",
+      "date": "2024-01-18",
+      "time": "19:00",
+      "venue": "Ресторан 'У Моря', наб. Москвы-реки, 25",
+      "available_seats": 12,
+      "price_range": "2000-5000",
+      "currency": "RUB",
+      "description": "Морская кухня, вид на реку, романтическая атмосфера",
+      "category": "dining"
+    },
+    {
+      "id": "3",
+      "name": "Фильм 'Новый день'",
+      "type": "cinema",
+      "date": "2024-01-19",
+      "time": "21:30",
+      "venue": "Кинотеатр 'Звезда', ул. Арбат, 8",
+      "available_seats": 78,
+      "price_range": "400-800",
+      "currency": "RUB",
+      "description": "Новый блокбастер, 3D, удобные кресла",
+      "category": "entertainment"
+    },
+    {
+      "id": "4",
+      "name": "Спектакль 'Гамлет'",
+      "type": "theater",
+      "date": "2024-01-22",
+      "time": "19:30",
+      "venue": "Театр им. Чехова, ул. Камергерский, 3",
+      "available_seats": 23,
+      "price_range": "3000-8000",
+      "currency": "RUB",
+      "description": "Классическая постановка, известные актеры",
+      "category": "culture"
+    },
+    {
+      "id": "5",
+      "name": "Мастер-класс по живописи",
+      "type": "workshop",
+      "date": "2024-01-21",
+      "time": "14:00",
+      "venue": "Арт-студия 'Краски', ул. Покровка, 12",
+      "available_seats": 8,
+      "price_range": "2500-3500",
+      "currency": "RUB",
+      "description": "Обучение живописи маслом, все материалы включены",
+      "category": "education"
+    },
+    {
+      "id": "6",
+      "name": "Боулинг 'Страйк'",
+      "type": "sport",
+      "date": "2024-01-17",
+      "time": "18:00",
+      "venue": "Боулинг-клуб 'Страйк', ул. Новый Арбат, 21",
+      "available_seats": 4,
+      "price_range": "800-1200",
+      "currency": "RUB",
+      "description": "2 дорожки, бар, музыка",
+      "category": "sport"
+    },
+    {
+      "id": "7",
+      "name": "Кофейня 'Утро'",
+      "type": "cafe",
+      "date": "2024-01-18",
+      "time": "10:00",
+      "venue": "Кофейня 'Утро', ул. Мясницкая, 7",
+      "available_seats": 15,
+      "price_range": "300-800",
+      "currency": "RUB",
+      "description": "Свежая выпечка, specialty кофе, уютная атмосфера",
+      "category": "dining"
+    },
+    {
+      "id": "8",
+      "name": "Квест 'Тайны старого дома'",
+      "type": "quest",
+      "date": "2024-01-20",
+      "time": "16:00",
+      "venue": "Квест-рум 'Тайны', ул. Маросейка, 11",
+      "available_seats": 6,
+      "price_range": "2000-3000",
+      "currency": "RUB",
+      "description": "Детективный квест, 90 минут, для 2-6 человек",
+      "category": "entertainment"
+    }
+  ]
+} 
