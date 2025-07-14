@@ -31,9 +31,9 @@
       <input type="password" id="api-key" placeholder="Enter OpenAI API Key" autocomplete="off" />
     </div>
     <div class="chatbox" id="chatbox"></div>
-    <form id="chat-form" class="input-row" autocomplete="off">
+    <form id="chat-form" class="input-row" autocomplete="off" onsubmit="return false;">
       <input type="text" id="user-input" placeholder="Например: забронируй столик в ресторане на вечер" required />
-      <button type="submit">Send</button>
+      <button type="button" id="send-btn">Send</button>
     </form>
     <button class="miniapp-btn" id="close-btn">Close Mini App</button>
   </div>
@@ -71,8 +71,178 @@
       chatbox.scrollTop = chatbox.scrollHeight;
     }
     
+    // Handle form submission
     chatForm.onsubmit = async (e) => {
       e.preventDefault();
+      e.stopPropagation();
+      
+      console.log('Form submitted, preventing default behavior');
+      
+      const apiKey = apiKeyInput.value.trim();
+      if (!apiKey) {
+        alert('Please enter your OpenAI API key.');
+        return;
+      }
+      
+      const content = userInput.value.trim();
+      if (!content) return;
+      
+      appendMessage('user', content);
+      userInput.value = '';
+      appendMessage('assistant', 'Определяю нужные данные...');
+      
+      try {
+        console.log('=== STARTING REQUEST ===');
+        console.log('User input:', content);
+        
+        // First, ask GPT to determine which data file is needed
+        const fileSelectionMessage = {
+          role: 'system',
+          content: `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.
+
+Available files:
+- events-moscow.json (events in Moscow)
+- events-spb.json (events in Saint Petersburg) 
+- people-moscow.json (professionals in Moscow)
+- contractors-moscow.json (construction/repair services in Moscow)
+- services-moscow.json (various services in Moscow)
+
+Respond ONLY with the filename (e.g., "events-moscow") without .json extension.`
+        };
+        
+        console.log('File selection message:', fileSelectionMessage);
+        
+        // First request - determine file
+        console.log('Sending file selection request to OpenAI...');
+        const fileRes = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': 'Bearer ' + apiKey
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            store: true,
+            messages: [fileSelectionMessage, {role: 'user', content}]
+          })
+        });
+        
+        console.log('File selection response status:', fileRes.status);
+        console.log('File selection response headers:', fileRes.headers);
+        
+        const fileData = await fileRes.json();
+        console.log('File selection response data:', fileData);
+        
+        let selectedFile = '';
+        
+        if (fileData.choices && fileData.choices[0] && fileData.choices[0].message) {
+          selectedFile = fileData.choices[0].message.content.trim().toLowerCase();
+          console.log('Selected file:', selectedFile);
+          console.log('Available files:', Object.keys(dataFiles));
+        } else {
+          console.error('File selection failed:', fileData);
+          console.error('File selection error details:', fileData.error);
+        }
+        
+        // Load the selected data file
+        console.log('=== LOADING DATA FILE ===');
+        console.log('Trying to load file:', selectedFile);
+        console.log('File path:', dataFiles[selectedFile]);
+        
+        if (dataFiles[selectedFile]) {
+          console.log('File found in mapping, loading...');
+          try {
+            const dataRes = await fetch(dataFiles[selectedFile]);
+            console.log('Data file response status:', dataRes.status);
+            console.log('Data file response headers:', dataRes.headers);
+            
+            if (!dataRes.ok) {
+              throw new Error(`HTTP ${dataRes.status}: ${dataRes.statusText}`);
+            }
+            
+            const loadedData = await dataRes.json();
+            currentData = loadedData;
+            dataLoaded = true;
+            console.log('Data loaded successfully:', currentData);
+          } catch (dataError) {
+            console.error('Error loading data file:', dataError);
+            throw dataError;
+          }
+          
+          // Remove the "Определяю нужные данные..." message
+          chatbox.removeChild(chatbox.lastChild);
+          
+          // Now create the main response with loaded data
+          console.log('=== CREATING MAIN RESPONSE ===');
+          const systemMessage = {
+            role: 'system',
+            content: `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:
+
+${JSON.stringify(currentData, null, 2)}
+
+Your task is to help users with:
+- Booking events and venues
+- Finding professionals and experts
+- Hiring contractors for services
+- Accessing various local services
+
+Provide detailed, helpful responses based on the available data. Include prices, contact information, and relevant details.`
+          };
+          
+          console.log('System message created, length:', systemMessage.content.length);
+          
+          // Send the main request with loaded data
+          console.log('Sending main response request to OpenAI...');
+          const mainRes = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8',
+              'Authorization': 'Bearer ' + apiKey
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              store: true,
+              messages: [systemMessage, {role: 'user', content}]
+            })
+          });
+          
+          console.log('Main response status:', mainRes.status);
+          console.log('Main response headers:', mainRes.headers);
+          
+          const mainData = await mainRes.json();
+          console.log('Main response data:', mainData);
+          
+          if (mainData.choices && mainData.choices[0] && mainData.choices[0].message) {
+            const reply = mainData.choices[0].message.content.trim();
+            console.log('GPT reply:', reply);
+            appendMessage('assistant', reply);
+            messages.push({role: 'user', content});
+            messages.push({role: 'assistant', content: reply});
+          } else {
+            console.error('Main response failed:', mainData);
+            console.error('Main response error details:', mainData.error);
+            appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
+          }
+        } else {
+          console.log('File not found in mapping:', selectedFile);
+          console.log('Available files in mapping:', Object.keys(dataFiles));
+          chatbox.removeChild(chatbox.lastChild);
+          appendMessage('assistant', `Не удалось определить нужные данные (${selectedFile}). Попробуйте переформулировать запрос.`);
+        }
+      } catch (err) {
+        console.error('=== ERROR OCCURRED ===');
+        console.error('Error type:', err.name);
+        console.error('Error message:', err.message);
+        console.error('Error stack:', err.stack);
+        chatbox.removeChild(chatbox.lastChild);
+        appendMessage('assistant', 'Ошибка: ' + err.message);
+      }
+    };
+    
+    // Handle send button click
+    document.getElementById('send-btn').onclick = async () => {
+      console.log('Send button clicked');
+      
       const apiKey = apiKeyInput.value.trim();
       if (!apiKey) {
         alert('Please enter your OpenAI API key.');
