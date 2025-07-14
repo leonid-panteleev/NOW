@@ -35,20 +35,12 @@
 </head>
 <body>
   <div class="container"> 
-    <h1>Telegram Mini App 202</h1>
+    <h1>NOW v2.13</h1>
     <div class="user" id="user-info">Loading user info...</div>
     <div class="apikey">
       <input type="password" id="api-key" placeholder="Enter OpenAI API Key" autocomplete="off" />
     </div>
-    <div class="chatbox" id="chatbox">
-      <!-- Test message to show booking button -->
-      <div class="msg assistant">
-        <div>Assistant: Тестовое сообщение с кнопкой бронирования</div>
-        <button class="booking-btn" onclick="showPaymentForm({name: 'Тестовое мероприятие', price_range: '1000-2000', currency: 'RUB'})">
-          💳 Забронировать за 1000-2000 RUB
-        </button>
-      </div>
-    </div>
+    <div class="chatbox" id="chatbox"></div>
     <form id="chat-form" class="input-row" autocomplete="off" onsubmit="return false;">
       <input type="text" id="user-input" placeholder="Например: забронируй столик в ресторане на вечер" required />
       <button type="button" id="send-btn">Send</button>
