@@ -21,11 +21,17 @@
     .input-row button:hover { background: #005f7a; }
     .miniapp-btn { background: #0088cc; color: #fff; border: none; border-radius: 6px; padding: 1em 2em; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 2em; transition: background 0.2s; }
     .miniapp-btn:hover { background: #005f7a; }
+    .booking-btn { background: #28a745; color: #fff; border: none; border-radius: 4px; padding: 0.5em 1em; font-weight: 600; cursor: pointer; margin: 0.5em 0; transition: background 0.2s; }
+    .booking-btn:hover { background: #218838; }
+    .payment-form { background: #f8f9fa; border-radius: 8px; padding: 1em; margin: 1em 0; display: none; }
+    .payment-form input { width: 100%; padding: 0.5em; margin: 0.5em 0; border-radius: 4px; border: 1px solid #ccc; }
+    .payment-form button { background: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 0.5em 1em; font-weight: 600; cursor: pointer; margin: 0.5em 0; transition: background 0.2s; }
+    .payment-form button:hover { background: #c82333; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Telegram Mini App + v15.07.1.36</h1>
+    <h1>Telegram Mini App + v15.07.1.42</h1>
     <div class="user" id="user-info">Loading user info...</div>
     <div class="apikey">
       <input type="password" id="api-key" placeholder="Enter OpenAI API Key" autocomplete="off" />
@@ -35,6 +41,18 @@
       <input type="text" id="user-input" placeholder="Например: забронируй столик в ресторане на вечер" required />
       <button type="button" id="send-btn">Send</button>
     </form>
+    
+    <!-- Payment Form -->
+    <div class="payment-form" id="payment-form">
+      <h3>Оплата</h3>
+      <div id="booking-details"></div>
+      <input type="text" id="card-number" placeholder="Номер карты: 1234 5678 9012 3456" maxlength="19" />
+      <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" />
+      <input type="text" id="card-cvv" placeholder="CVV" maxlength="3" />
+      <input type="text" id="card-name" placeholder="Имя владельца карты" />
+      <button type="button" id="pay-btn">Оплатить</button>
+    </div>
+    
     <button class="miniapp-btn" id="close-btn">Close Mini App</button>
   </div>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -68,13 +86,44 @@
     let currentData = {};
     let dataLoaded = false;
     let messages = [];
+    let selectedItem = null; // Store selected booking item
     
-    function appendMessage(role, content) {
+    function appendMessage(role, content, bookingData = null) {
       const div = document.createElement('div');
       div.className = 'msg ' + role;
       div.textContent = (role === 'user' ? 'You: ' : 'Assistant: ') + content;
+      
+      // Add booking button if this is an assistant message with booking data
+      if (role === 'assistant' && bookingData) {
+        const bookingBtn = document.createElement('button');
+        bookingBtn.className = 'booking-btn';
+        bookingBtn.textContent = 'Забронировать';
+        bookingBtn.onclick = () => showPaymentForm(bookingData);
+        div.appendChild(bookingBtn);
+      }
+      
       chatbox.appendChild(div);
       chatbox.scrollTop = chatbox.scrollHeight;
+    }
+    
+    function showPaymentForm(item) {
+      selectedItem = item;
+      const paymentForm = document.getElementById('payment-form');
+      const bookingDetails = document.getElementById('booking-details');
+      
+      // Show booking details
+      let details = `<strong>${item.name}</strong><br>`;
+      if (item.venue) details += `Место: ${item.venue}<br>`;
+      if (item.date) details += `Дата: ${item.date}<br>`;
+      if (item.time) details += `Время: ${item.time}<br>`;
+      if (item.price_range) details += `Цена: ${item.price_range} ${item.currency || 'RUB'}<br>`;
+      if (item.description) details += `Описание: ${item.description}`;
+      
+      bookingDetails.innerHTML = details;
+      paymentForm.style.display = 'block';
+      
+      // Scroll to payment form
+      paymentForm.scrollIntoView({ behavior: 'smooth' });
     }
     
     // Handle form submission
@@ -221,7 +270,15 @@ Provide detailed, helpful responses based on the available data. Include prices,
           if (mainData.choices && mainData.choices[0] && mainData.choices[0].message) {
             const reply = mainData.choices[0].message.content.trim();
             console.log('GPT reply:', reply);
-            appendMessage('assistant', reply);
+            
+            // Try to find booking data in the response
+            let bookingData = null;
+            if (currentData.data && currentData.data.length > 0) {
+              // For now, use the first item as booking data
+              bookingData = currentData.data[0];
+            }
+            
+            appendMessage('assistant', reply, bookingData);
             messages.push({role: 'user', content});
             messages.push({role: 'assistant', content: reply});
           } else {
@@ -408,6 +465,71 @@ Provide detailed, helpful responses based on the available data. Include prices,
         chatbox.removeChild(chatbox.lastChild);
         appendMessage('assistant', 'Ошибка: ' + err.message);
       }
+    };
+    
+    // Handle payment
+    document.getElementById('pay-btn').onclick = async () => {
+      if (!selectedItem) {
+        alert('Нет выбранного элемента для бронирования');
+        return;
+      }
+      
+      const cardNumber = document.getElementById('card-number').value;
+      const cardExpiry = document.getElementById('card-expiry').value;
+      const cardCvv = document.getElementById('card-cvv').value;
+      const cardName = document.getElementById('card-name').value;
+      
+      if (!cardNumber || !cardExpiry || !cardCvv || !cardName) {
+        alert('Пожалуйста, заполните все поля');
+        return;
+      }
+      
+      // Simulate payment processing
+      const payBtn = document.getElementById('pay-btn');
+      payBtn.textContent = 'Обработка...';
+      payBtn.disabled = true;
+      
+      setTimeout(async () => {
+        // Simulate successful payment
+        payBtn.textContent = 'Оплачено!';
+        payBtn.style.background = '#28a745';
+        
+        // Send booking data to Telegram bot
+        const bookingInfo = {
+          user: tg.initDataUnsafe?.user || {},
+          item: selectedItem,
+          payment: {
+            cardNumber: cardNumber.slice(-4), // Only last 4 digits for security
+            cardName: cardName
+          },
+          timestamp: new Date().toISOString()
+        };
+        
+        console.log('Sending booking to Telegram bot:', bookingInfo);
+        
+        // Send data to Telegram bot
+        tg.sendData(JSON.stringify(bookingInfo));
+        
+        // Show success message
+        appendMessage('assistant', '✅ Бронирование успешно оформлено! Данные отправлены в бот.');
+        
+        // Hide payment form
+        document.getElementById('payment-form').style.display = 'none';
+        
+        // Reset form
+        document.getElementById('card-number').value = '';
+        document.getElementById('card-expiry').value = '';
+        document.getElementById('card-cvv').value = '';
+        document.getElementById('card-name').value = '';
+        
+        // Reset button
+        setTimeout(() => {
+          payBtn.textContent = 'Оплатить';
+          payBtn.disabled = false;
+          payBtn.style.background = '#dc3545';
+        }, 2000);
+        
+      }, 2000);
     };
     
     // Close Mini App
