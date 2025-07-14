@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Telegram Mini App + ChatGPT Demo</title>
+  <title>Telegram Mini App + Умное Автобронирование</title>
   <style>
     body { font-family: 'Inter', Arial, sans-serif; background: #f9f9f9; color: #222; margin: 0; padding: 0; }
     .container { max-width: 400px; margin: 2em auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 2em; text-align: center; }
@@ -25,7 +25,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Telegram Mini App + Автобронирование</h1>
+    <h1>Telegram Mini App + Умное Автобронирование</h1>
     <div class="user" id="user-info">Loading user info...</div>
     <div class="apikey">
       <input type="password" id="api-key" placeholder="Enter OpenAI API Key" autocomplete="off" />
@@ -49,61 +49,28 @@
     } else {
       userInfo.textContent = 'User info not available.';
     }
-    // ChatGPT logic
-    const chatbox = document.getElementById('chatbox');
-    const chatForm = document.getElementById('chat-form');
-    const userInput = document.getElementById('user-input');
-    const apiKeyInput = document.getElementById('api-key');
     
-    // Load events data
-    let eventsData = {};
-    fetch('/NOW/miniapp/events.json')
-      .then(response => response.json())
-      .then(data => {
-        eventsData = data;
-        // Update system message with events data
-        messages[0] = {
-          role: 'system', 
-          content: `You are an AI assistant for an auto-booking service. You have access to information about available events and venues.
-
-AVAILABLE EVENTS:
-${encodeURIComponent(JSON.stringify(eventsData, null, 2))}
-
-Your task is to help users book events based on their requests. You can:
-- Suggest events based on user preferences
-- Provide details about venues, prices, and availability
-- Help with booking decisions
-- Answer questions about events
-
-Always provide relevant information from the events database when responding.`
-        };
-      })
-      .catch(error => {
-        console.error('Error loading events:', error);
-        appendMessage('assistant', 'Ошибка загрузки данных о мероприятиях. Попробуйте позже.');
-      });
+    // Available data files mapping
+    const dataFiles = {
+      'events-moscow': '/NOW/miniapp/events-moscow.json',
+      'events-spb': '/NOW/miniapp/events-spb.json',
+      'people-moscow': '/NOW/miniapp/people-moscow.json',
+      'contractors-moscow': '/NOW/miniapp/contractors-moscow.json',
+      'services-moscow': '/NOW/miniapp/services-moscow.json'
+    };
     
-    let messages = [
-      {role: 'system', content: `You are an AI assistant for an auto-booking service. You have access to information about available events and venues.
-
-AVAILABLE EVENTS:
-${JSON.stringify(eventsData, null, 2)}
-
-Your task is to help users book events based on their requests. You can:
-- Suggest events based on user preferences
-- Provide details about venues, prices, and availability
-- Help with booking decisions
-- Answer questions about events
-
-Always provide relevant information from the events database when responding.`}
-    ];
+    let currentData = {};
+    let dataLoaded = false;
+    let messages = [];
+    
     function appendMessage(role, content) {
       const div = document.createElement('div');
       div.className = 'msg ' + role;
-      div.textContent = (role === 'user' ? 'You: ' : 'ChatGPT: ') + content;
+      div.textContent = (role === 'user' ? 'You: ' : 'Assistant: ') + content;
       chatbox.appendChild(div);
       chatbox.scrollTop = chatbox.scrollHeight;
     }
+    
     chatForm.onsubmit = async (e) => {
       e.preventDefault();
       const apiKey = apiKeyInput.value.trim();
@@ -111,14 +78,32 @@ Always provide relevant information from the events database when responding.`}
         alert('Please enter your OpenAI API key.');
         return;
       }
+      
       const content = userInput.value.trim();
       if (!content) return;
+      
       appendMessage('user', content);
-      messages.push({role: 'user', content});
       userInput.value = '';
-      appendMessage('assistant', '...');
+      appendMessage('assistant', 'Определяю нужные данные...');
+      
       try {
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        // First, ask GPT to determine which data file is needed
+        const fileSelectionMessage = {
+          role: 'system',
+          content: `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.
+
+Available files:
+- events-moscow.json (events in Moscow)
+- events-spb.json (events in Saint Petersburg) 
+- people-moscow.json (professionals in Moscow)
+- contractors-moscow.json (construction/repair services in Moscow)
+- services-moscow.json (various services in Moscow)
+
+Respond ONLY with the filename (e.g., "events-moscow") without .json extension.`
+        };
+        
+        // First request - determine file
+        const fileRes = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
@@ -127,24 +112,78 @@ Always provide relevant information from the events database when responding.`}
           body: JSON.stringify({
             model: 'gpt-4o-mini',
             store: true,
-            messages: messages
+            messages: [fileSelectionMessage, {role: 'user', content}]
           })
         });
-        const data = await res.json();
-        // Remove the '...' placeholder
-        chatbox.removeChild(chatbox.lastChild);
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-          const reply = data.choices[0].message.content.trim();
-          appendMessage('assistant', reply);
-          messages.push({role: 'assistant', content: reply});
+        
+        const fileData = await fileRes.json();
+        let selectedFile = '';
+        
+        if (fileData.choices && fileData.choices[0] && fileData.choices[0].message) {
+          selectedFile = fileData.choices[0].message.content.trim().toLowerCase();
+          console.log('Selected file:', selectedFile);
+        }
+        
+        // Load the selected data file
+        if (dataFiles[selectedFile]) {
+          const dataRes = await fetch(dataFiles[selectedFile]);
+          const loadedData = await dataRes.json();
+          currentData = loadedData;
+          dataLoaded = true;
+          
+          // Remove the "Определяю нужные данные..." message
+          chatbox.removeChild(chatbox.lastChild);
+          
+          // Now create the main response with loaded data
+          const systemMessage = {
+            role: 'system',
+            content: `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:
+
+${JSON.stringify(currentData, null, 2)}
+
+Your task is to help users with:
+- Booking events and venues
+- Finding professionals and experts
+- Hiring contractors for services
+- Accessing various local services
+
+Provide detailed, helpful responses based on the available data. Include prices, contact information, and relevant details.`
+          };
+          
+          // Send the main request with loaded data
+          const mainRes = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8',
+              'Authorization': 'Bearer ' + apiKey
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              store: true,
+              messages: [systemMessage, {role: 'user', content}]
+            })
+          });
+          
+          const mainData = await mainRes.json();
+          
+          if (mainData.choices && mainData.choices[0] && mainData.choices[0].message) {
+            const reply = mainData.choices[0].message.content.trim();
+            appendMessage('assistant', reply);
+            messages.push({role: 'user', content});
+            messages.push({role: 'assistant', content: reply});
+          } else {
+            appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
+          }
         } else {
-          appendMessage('assistant', 'Error: ' + (data.error?.message || 'Unknown error'));
+          chatbox.removeChild(chatbox.lastChild);
+          appendMessage('assistant', 'Не удалось определить нужные данные. Попробуйте переформулировать запрос.');
         }
       } catch (err) {
         chatbox.removeChild(chatbox.lastChild);
-        appendMessage('assistant', 'Error: ' + err.message);
+        appendMessage('assistant', 'Ошибка: ' + err.message);
       }
     };
+    
     // Close Mini App
     document.getElementById('close-btn').onclick = function() {
       tg.close();

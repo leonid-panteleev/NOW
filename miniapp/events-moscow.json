@@ -1,0 +1,42 @@
+{
+  "city": "Moscow",
+  "type": "events",
+  "data": [
+    {
+      "id": "m1",
+      "name": "Концерт группы 'Время'",
+      "type": "concert",
+      "date": "2024-01-20",
+      "time": "20:00",
+      "venue": "Клуб 'Метро', ул. Тверская, 15",
+      "available_seats": 45,
+      "price_range": "1500-3000",
+      "currency": "RUB",
+      "description": "Живая музыка, бар, танцпол"
+    },
+    {
+      "id": "m2",
+      "name": "Ресторан 'У Моря'",
+      "type": "restaurant",
+      "date": "2024-01-18",
+      "time": "19:00",
+      "venue": "Ресторан 'У Моря', наб. Москвы-реки, 25",
+      "available_seats": 12,
+      "price_range": "2000-5000",
+      "currency": "RUB",
+      "description": "Морская кухня, вид на реку"
+    },
+    {
+      "id": "m3",
+      "name": "Фильм 'Новый день'",
+      "type": "cinema",
+      "date": "2024-01-19",
+      "time": "21:30",
+      "venue": "Кинотеатр 'Звезда', ул. Арбат, 8",
+      "available_seats": 78,
+      "price_range": "400-800",
+      "currency": "RUB",
+      "description": "Новый блокбастер, 3D"
+    }
+  ]
+} 

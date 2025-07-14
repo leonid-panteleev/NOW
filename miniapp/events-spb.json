@@ -1,0 +1,42 @@
+{
+  "city": "Saint Petersburg",
+  "type": "events",
+  "data": [
+    {
+      "id": "sp1",
+      "name": "Концерт в Мариинском театре",
+      "type": "concert",
+      "date": "2024-01-22",
+      "time": "19:00",
+      "venue": "Мариинский театр, Театральная пл., 1",
+      "available_seats": 25,
+      "price_range": "3000-8000",
+      "currency": "RUB",
+      "description": "Классическая музыка, оркестр"
+    },
+    {
+      "id": "sp2",
+      "name": "Ресторан 'Невский'",
+      "type": "restaurant",
+      "date": "2024-01-20",
+      "time": "20:00",
+      "venue": "Ресторан 'Невский', Невский пр., 45",
+      "available_seats": 8,
+      "price_range": "2500-6000",
+      "currency": "RUB",
+      "description": "Русская кухня, вид на Неву"
+    },
+    {
+      "id": "sp3",
+      "name": "Фильм 'Белые ночи'",
+      "type": "cinema",
+      "date": "2024-01-21",
+      "time": "22:00",
+      "venue": "Кинотеатр 'Аврора', Невский пр., 60",
+      "available_seats": 45,
+      "price_range": "500-900",
+      "currency": "RUB",
+      "description": "Артхаус, историческое здание"
+    }
+  ]
+} 

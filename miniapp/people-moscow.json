@@ -1,0 +1,42 @@
+{
+  "city": "Moscow",
+  "type": "people",
+  "data": [
+    {
+      "id": "mp1",
+      "name": "Анна Петрова",
+      "profession": "Фотограф",
+      "specialization": "Свадебная фотография",
+      "experience": "8 лет",
+      "rate": "15000-25000",
+      "currency": "RUB",
+      "description": "Профессиональная свадебная фотография, портреты",
+      "contact": "+7 (495) 123-45-67",
+      "rating": 4.8
+    },
+    {
+      "id": "mp2",
+      "name": "Михаил Сидоров",
+      "profession": "Репетитор",
+      "specialization": "Математика, физика",
+      "experience": "12 лет",
+      "rate": "2000-3000",
+      "currency": "RUB",
+      "description": "Подготовка к ЕГЭ, олимпиадам, университет",
+      "contact": "+7 (495) 234-56-78",
+      "rating": 4.9
+    },
+    {
+      "id": "mp3",
+      "name": "Елена Козлова",
+      "profession": "Дизайнер",
+      "specialization": "Интерьерный дизайн",
+      "experience": "6 лет",
+      "rate": "3000-5000",
+      "currency": "RUB",
+      "description": "Дизайн квартир, офисов, ремонт под ключ",
+      "contact": "+7 (495) 345-67-89",
+      "rating": 4.7
+    }
+  ]
+} 
