@@ -25,7 +25,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Telegram Mini App + v15.07.1.31</h1>
+    <h1>Telegram Mini App + v15.07.1.35</h1>
     <div class="user" id="user-info">Loading user info...</div>
     <div class="apikey">
       <input type="password" id="api-key" placeholder="Enter OpenAI API Key" autocomplete="off" />
@@ -49,6 +49,12 @@
     } else {
       userInfo.textContent = 'User info not available.';
     }
+    
+    // Get DOM elements
+    const chatbox = document.getElementById('chatbox');
+    const chatForm = document.getElementById('chat-form');
+    const userInput = document.getElementById('user-input');
+    const apiKeyInput = document.getElementById('api-key');
     
     // Available data files mapping
     const dataFiles = {
