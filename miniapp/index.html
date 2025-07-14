@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Telegram Mini App + Умное Автобронирование</title>
+  <title>Telegram Mini App v1.47</title>
   <style>
     body { font-family: 'Inter', Arial, sans-serif; background: #f9f9f9; color: #222; margin: 0; padding: 0; }
     .container { max-width: 400px; margin: 2em auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 2em; text-align: center; }
@@ -91,13 +91,17 @@
     function appendMessage(role, content, bookingData = null) {
       const div = document.createElement('div');
       div.className = 'msg ' + role;
-      div.textContent = (role === 'user' ? 'You: ' : 'Assistant: ') + content;
+      
+      // Create text content
+      const textDiv = document.createElement('div');
+      textDiv.textContent = (role === 'user' ? 'You: ' : 'Assistant: ') + content;
+      div.appendChild(textDiv);
       
       // Add booking button if this is an assistant message with booking data
       if (role === 'assistant' && bookingData) {
         const bookingBtn = document.createElement('button');
         bookingBtn.className = 'booking-btn';
-        bookingBtn.textContent = 'Забронировать';
+        bookingBtn.textContent = `💳 Забронировать за ${bookingData.price_range || 'указанную'} ${bookingData.currency || 'RUB'}`;
         bookingBtn.onclick = () => showPaymentForm(bookingData);
         div.appendChild(bookingBtn);
       }
