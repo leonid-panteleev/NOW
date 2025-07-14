@@ -85,8 +85,9 @@
             'Authorization': 'Bearer ' + apiKey
           },
           body: JSON.stringify({
-            model: 'gpt-3.5-turbo',
-            messages: messages
+            model: 'gpt-3.5-turbo-16k',
+            messages: messages,
+            max_tokens: 150
           })
         });
         const data = await res.json();
