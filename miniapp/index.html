@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Telegram Mini App v1.47</title>
+  <title>Telegram Mini App v1.53</title>
   <style>
     body { font-family: 'Inter', Arial, sans-serif; background: #f9f9f9; color: #222; margin: 0; padding: 0; }
     .container { max-width: 400px; margin: 2em auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 2em; text-align: center; }
@@ -27,6 +27,10 @@
     .payment-form input { width: 100%; padding: 0.5em; margin: 0.5em 0; border-radius: 4px; border: 1px solid #ccc; }
     .payment-form button { background: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 0.5em 1em; font-weight: 600; cursor: pointer; margin: 0.5em 0; transition: background 0.2s; }
     .payment-form button:hover { background: #c82333; }
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1000; }
+    .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2em; border-radius: 12px; max-width: 90%; max-height: 80%; overflow-y: auto; }
+    .modal-close { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #666; }
+    .modal-close:hover { color: #000; }
   </style>
 </head>
 <body>
@@ -36,21 +40,34 @@
     <div class="apikey">
       <input type="password" id="api-key" placeholder="Enter OpenAI API Key" autocomplete="off" />
     </div>
-    <div class="chatbox" id="chatbox"></div>
+    <div class="chatbox" id="chatbox">
+      <!-- Test message to show booking button -->
+      <div class="msg assistant">
+        <div>Assistant: Тестовое сообщение с кнопкой бронирования</div>
+        <button class="booking-btn" onclick="showPaymentForm({name: 'Тестовое мероприятие', price_range: '1000-2000', currency: 'RUB'})">
+          💳 Забронировать за 1000-2000 RUB
+        </button>
+      </div>
+    </div>
     <form id="chat-form" class="input-row" autocomplete="off" onsubmit="return false;">
       <input type="text" id="user-input" placeholder="Например: забронируй столик в ресторане на вечер" required />
       <button type="button" id="send-btn">Send</button>
     </form>
     
-    <!-- Payment Form -->
-    <div class="payment-form" id="payment-form">
-      <h3>Оплата</h3>
-      <div id="booking-details"></div>
-      <input type="text" id="card-number" placeholder="Номер карты: 1234 5678 9012 3456" maxlength="19" />
-      <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" />
-      <input type="text" id="card-cvv" placeholder="CVV" maxlength="3" />
-      <input type="text" id="card-name" placeholder="Имя владельца карты" />
-      <button type="button" id="pay-btn">Оплатить</button>
+    <!-- Payment Modal -->
+    <div class="modal" id="payment-modal">
+      <div class="modal-content">
+        <span class="modal-close" onclick="closePaymentModal()">&times;</span>
+        <h3>💳 Оформление бронирования</h3>
+        <div id="modal-booking-details"></div>
+        <div style="margin: 1em 0;">
+          <input type="text" id="card-number" placeholder="Номер карты: 1234 5678 9012 3456" maxlength="19" />
+          <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" />
+          <input type="text" id="card-cvv" placeholder="CVV" maxlength="3" />
+          <input type="text" id="card-name" placeholder="Имя владельца карты" />
+        </div>
+        <button type="button" id="pay-btn" style="width: 100%;">💳 Оплатить</button>
+      </div>
     </div>
     
     <button class="miniapp-btn" id="close-btn">Close Mini App</button>
@@ -98,12 +115,17 @@
       div.appendChild(textDiv);
       
       // Add booking button if this is an assistant message with booking data
+      console.log('appendMessage called with:', { role, content: content.substring(0, 50) + '...', bookingData });
+      
       if (role === 'assistant' && bookingData) {
+        console.log('Creating booking button for:', bookingData.name);
         const bookingBtn = document.createElement('button');
         bookingBtn.className = 'booking-btn';
         bookingBtn.textContent = `💳 Забронировать за ${bookingData.price_range || 'указанную'} ${bookingData.currency || 'RUB'}`;
         bookingBtn.onclick = () => showPaymentForm(bookingData);
         div.appendChild(bookingBtn);
+      } else if (role === 'assistant') {
+        console.log('Assistant message but no booking data');
       }
       
       chatbox.appendChild(div);
@@ -271,15 +293,25 @@ Provide detailed, helpful responses based on the available data. Include prices,
           const mainData = await mainRes.json();
           console.log('Main response data:', mainData);
           
-          if (mainData.choices && mainData.choices[0] && mainData.choices[0].message) {
+                    if (mainData.choices && mainData.choices[0] && mainData.choices[0].message) {
             const reply = mainData.choices[0].message.content.trim();
             console.log('GPT reply:', reply);
             
-            // Try to find booking data in the response
+            // Always show booking button for assistant messages
             let bookingData = null;
             if (currentData.data && currentData.data.length > 0) {
-              // For now, use the first item as booking data
+              // Use the first item as booking data
               bookingData = currentData.data[0];
+              console.log('Found booking data:', bookingData);
+            } else {
+              // Create default booking data if none found
+              bookingData = {
+                name: 'Выбранная услуга',
+                price_range: '1000-5000',
+                currency: 'RUB',
+                description: 'Услуга по вашему запросу'
+              };
+              console.log('Created default booking data');
             }
             
             appendMessage('assistant', reply, bookingData);
@@ -517,8 +549,8 @@ Provide detailed, helpful responses based on the available data. Include prices,
         // Show success message
         appendMessage('assistant', '✅ Бронирование успешно оформлено! Данные отправлены в бот.');
         
-        // Hide payment form
-        document.getElementById('payment-form').style.display = 'none';
+        // Hide payment modal
+        closePaymentModal();
         
         // Reset form
         document.getElementById('card-number').value = '';
