@@ -67,7 +67,7 @@
           content: `You are an AI assistant for an auto-booking service. You have access to information about available events and venues.
 
 AVAILABLE EVENTS:
-${JSON.stringify(eventsData, null, 2)}
+${encodeURIComponent(JSON.stringify(eventsData, null, 2))}
 
 Your task is to help users book events based on their requests. You can:
 - Suggest events based on user preferences
@@ -121,7 +121,7 @@ Always provide relevant information from the events database when responding.`}
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json; charset=utf-8',
             'Authorization': 'Bearer ' + apiKey
           },
           body: JSON.stringify({
