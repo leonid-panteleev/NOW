@@ -278,18 +278,13 @@ Respond ONLY with the filename (e.g., "events-moscow") without .json extension.`
                     if (mainData.choices && mainData.choices[0] && mainData.choices[0].message) {
             const reply = mainData.choices[0].message.content.trim();
             console.log('GPT reply:', reply);
-            // Check for booking confirmation pattern
-            let bookingData = null;
-            let bookingId = null;
-            const match = reply.match(/BOOKING_CONFIRMED:([a-zA-Z0-9_-]+)/);
-            if (match && currentData.data && Array.isArray(currentData.data)) {
-              bookingId = match[1];
-              bookingData = currentData.data.find(item => item.id === bookingId);
-              console.log('Booking confirmed for ID:', bookingId, bookingData);
-            }
-            appendMessage('assistant', reply, bookingData);
+            appendMessage('assistant', reply, null); // No bookingData for main text
             messages.push({role: 'user', content});
             messages.push({role: 'assistant', content: reply});
+            // Render booking cards for each relevant item
+            if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
+              renderBookingCards(currentData.data);
+            }
           } else {
             console.error('Main response failed:', mainData);
             console.error('Main response error details:', mainData.error);
@@ -442,18 +437,13 @@ Respond ONLY with the filename (e.g., "events-moscow") without .json extension.`
           if (mainData.choices && mainData.choices[0] && mainData.choices[0].message) {
             const reply = mainData.choices[0].message.content.trim();
             console.log('GPT reply:', reply);
-            // Check for booking confirmation pattern
-            let bookingData = null;
-            let bookingId = null;
-            const match = reply.match(/BOOKING_CONFIRMED:([a-zA-Z0-9_-]+)/);
-            if (match && currentData.data && Array.isArray(currentData.data)) {
-              bookingId = match[1];
-              bookingData = currentData.data.find(item => item.id === bookingId);
-              console.log('Booking confirmed for ID:', bookingId, bookingData);
-            }
-            appendMessage('assistant', reply, bookingData);
+            appendMessage('assistant', reply, null); // No bookingData for main text
             messages.push({role: 'user', content});
             messages.push({role: 'assistant', content: reply});
+            // Render booking cards for each relevant item
+            if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
+              renderBookingCards(currentData.data);
+            }
           } else {
             console.error('Main response failed:', mainData);
             console.error('Main response error details:', mainData.error);
@@ -544,6 +534,32 @@ Respond ONLY with the filename (e.g., "events-moscow") without .json extension.`
     document.getElementById('close-btn').onclick = function() {
       tg.close();
     };
+
+    // Render booking cards for all items
+    function renderBookingCards(items) {
+      // Remove previous cards
+      const oldCards = document.querySelectorAll('.booking-card');
+      oldCards.forEach(card => card.remove());
+      // Render new cards
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'booking-card';
+        card.style = 'background:#f8f9fa;margin:1em 0;padding:1em;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.04);';
+        let html = `<strong style="color:#0088cc;">${item.name}</strong><br>`;
+        if (item.venue) html += `Место: ${item.venue}<br>`;
+        if (item.date) html += `Дата: ${item.date}<br>`;
+        if (item.time) html += `Время: ${item.time}<br>`;
+        if (item.price_range) html += `Цена: ${item.price_range} ${item.currency || 'RUB'}<br>`;
+        if (item.description) html += `Описание: ${item.description}<br>`;
+        card.innerHTML = html;
+        const btn = document.createElement('button');
+        btn.className = 'booking-btn';
+        btn.textContent = `💳 Забронировать${item.price_range ? ' за ' + item.price_range + ' ' + (item.currency || 'RUB') : ''}`;
+        btn.onclick = () => showPaymentForm(item);
+        card.appendChild(btn);
+        document.getElementById('chatbox').appendChild(card);
+      });
+    }
   </script>
 </body>
 </html>
