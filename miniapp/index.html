@@ -535,31 +535,54 @@ Respond ONLY with the filename (e.g., "events-moscow") without .json extension.`
       tg.close();
     };
 
-    // Render booking cards for all items
+    // Render booking cards for all items with selection logic
     function renderBookingCards(items) {
       // Remove previous cards
       const oldCards = document.querySelectorAll('.booking-card');
       oldCards.forEach(card => card.remove());
-      // Render new cards
+      // State: only one selected at a time
+      let selectedCard = null;
+      let selectedBookingItem = null;
       items.forEach(item => {
         const card = document.createElement('div');
         card.className = 'booking-card';
-        card.style = 'background:#f8f9fa;margin:1em 0;padding:1em;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.04);';
-        let html = `<strong style="color:#0088cc;">${item.name}</strong><br>`;
+        card.style = 'background:#f8f9fa;margin:1em 0;padding:1em;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.04);position:relative;';
+        let html = `<strong style=\"color:#0088cc;\">${item.name}</strong><br>`;
         if (item.venue) html += `Место: ${item.venue}<br>`;
         if (item.date) html += `Дата: ${item.date}<br>`;
         if (item.time) html += `Время: ${item.time}<br>`;
         if (item.price_range) html += `Цена: ${item.price_range} ${item.currency || 'RUB'}<br>`;
         if (item.description) html += `Описание: ${item.description}<br>`;
         card.innerHTML = html;
-        const btn = document.createElement('button');
-        btn.className = 'booking-btn';
-        btn.textContent = `💳 Забронировать${item.price_range ? ' за ' + item.price_range + ' ' + (item.currency || 'RUB') : ''}`;
-        btn.onclick = () => showPaymentForm(item);
-        card.appendChild(btn);
+        // Выбрать
+        const selectBtn = document.createElement('button');
+        selectBtn.className = 'booking-btn';
+        selectBtn.textContent = 'Выбрать';
+        selectBtn.onclick = () => {
+          // Снять выделение с других
+          document.querySelectorAll('.booking-card.selected').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          selectedBookingItem = item;
+          // Показать кнопку бронирования
+          document.querySelectorAll('.booking-card .confirm-btn').forEach(b => b.style.display = 'none');
+          confirmBtn.style.display = 'inline-block';
+        };
+        card.appendChild(selectBtn);
+        // Забронировать (по умолчанию скрыта)
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'booking-btn confirm-btn';
+        confirmBtn.style.background = '#28a745';
+        confirmBtn.style.display = 'none';
+        confirmBtn.textContent = `💳 Забронировать${item.price_range ? ' за ' + item.price_range + ' ' + (item.currency || 'RUB') : ''}`;
+        confirmBtn.onclick = () => showPaymentForm(item);
+        card.appendChild(confirmBtn);
         document.getElementById('chatbox').appendChild(card);
       });
     }
+    // Add highlight for selected card
+    const style = document.createElement('style');
+    style.innerHTML = `.booking-card.selected { border: 2px solid #28a745; box-shadow: 0 0 0 2px #28a74533; }`;
+    document.head.appendChild(style);
   </script>
 </body>
 </html>
