@@ -35,7 +35,7 @@
 </head>
 <body>
   <div class="container"> 
-    <h1>NOW v2.13</h1>
+    <h1>NOW v12.21</h1>
     <div class="user" id="user-info">Loading user info...</div>
     <!-- Удалён блок ввода API-ключа -->
     <div class="chatbox" id="chatbox"></div>
@@ -182,8 +182,8 @@
           },
           body: JSON.stringify({
             contents: [
-              { role: 'user', parts: [ { text: fileSelectionPrompt } ] },
-              { role: 'user', parts: [ { text: content } ] }
+              { parts: [ { text: fileSelectionPrompt } ] },
+              { parts: [ { text: content } ] }
             ]
           })
         });
@@ -223,8 +223,8 @@
             },
             body: JSON.stringify({
               contents: [
-                { role: 'user', parts: [ { text: systemPrompt } ] },
-                { role: 'user', parts: [ { text: content } ] }
+                { parts: [ { text: systemPrompt } ] },
+                { parts: [ { text: content } ] }
               ]
             })
           });
