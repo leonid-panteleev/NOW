@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Telegram Mini App</title>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap&subset=cyrillic" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add_card,key_vertical,send" />
   <style>
     html, body {
       height: 100%;
@@ -545,6 +546,27 @@
         min-height: 220px;
       }
     }
+    .material-symbols-outlined.header-icon {
+      color: #fff;
+      font-variation-settings:
+        'FILL' 0,
+        'wght' 200,
+        'GRAD' 0,
+        'opsz' 24;
+    }
+    .material-symbols-outlined.send-icon {
+      color: #fff;
+      font-size: 24px;
+      transform: rotate(-45deg) scale(0.67);
+      display: inline-block;
+      vertical-align: middle;
+      transition: color 0.2s;
+      font-variation-settings:
+        'FILL' 0,
+        'wght' 200,
+        'GRAD' 0,
+        'opsz' 24;
+    }
   </style>
 </head>
 <body>
@@ -557,18 +579,18 @@
         <span class="input-icon">🔑</span>
         <input type="text" id="api-key" placeholder="Gemini API Key" autocomplete="off" inputmode="text" spellcheck="false" style="padding-left:2.5em;width:100%;max-width:340px;border:2px solid #7ecfff;background:#232b36;color:#fff;font-size:1.15em;box-shadow:0 2px 12px #0003;border-radius:14px;" />
       </div>
-      <button class="apikey-btn" id="apikey-save-btn" type="button" style="margin-top:0.7em;width:100%;display:flex;align-items:center;justify-content:center;background:#181a1f;color:#fff;border:1.5px solid #23272f;border-radius:50px;font-size:1.13em;font-weight:700;padding:0.9em 0;box-shadow:0 4px 16px #0008,0 0 0 2px #23272f inset;transition:box-shadow 0.2s,background 0.2s,border 0.2s;cursor:pointer;">OK</button>
+      <button class="apikey-btn" id="apikey-save-btn" type="button" style="margin-top:0.7em;width:100%;display:flex;align-items:center;justify-content:center;background:#181a1f;color:#fff;border:1.5px solid #23272f;border-radius:50px;font-size:1.13em;font-weight:700;padding:0.9em 0;box-shadow:0 4px 16px #0008,0 0 0 2px #23272f inset;transition:box-shadow 0.2s,background 0.2s,border 0.2s;cursor:pointer;">Добавить</button>
     </div>
   </div>
   <div class="container">
     <div class="header">
-      <span class="app-title"><span class="logo">🕓</span>NOW v14.32</span>
+      <span class="app-title">NOW</span>
       <div style="display: flex; gap: 0.7em; align-items: center;">
         <button class="key-btn" id="booking-btn" title="Оформить бронирование">
-          <span class="header-icon">💳</span>
+          <span class="material-symbols-outlined header-icon">add_card</span>
         </button>
       <button class="key-btn" id="show-key-btn" title="API Key">
-          <span class="header-icon">🔑</span>
+          <span class="material-symbols-outlined header-icon">key_vertical</span>
       </button>
       </div>
     </div>
@@ -578,9 +600,7 @@
       <div class="input-wrapper">
         <textarea id="user-input" placeholder="Например: забронируй столик в ресторане на вечер" required rows="2"></textarea>
         <button type="submit" id="send-btn" title="Send">
-          <svg width="24" height="24" viewBox="0 0 24 24" style="display:block;" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 12l16-7-7 16-2-7-7-2z" fill="#fff"/>
-          </svg>
+          <span class="material-symbols-outlined send-icon">send</span>
         </button>
       </div>
     </form>
@@ -683,7 +703,8 @@
     const userInfo = document.getElementById('user-info');
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const user = tg.initDataUnsafe.user;
-      userInfo.textContent = `Hello, ${user.first_name} ${user.last_name || ''} (@${user.username || 'no username'})!`;
+      const name = user.first_name || user.last_name || user.username || 'Гость';
+      userInfo.textContent = `Привет, ${name}.`;
     } else {
       userInfo.textContent = 'User info not available.';
     }
@@ -694,17 +715,11 @@
     const userInput = document.getElementById('user-input');
     userInput.addEventListener('keydown', function(e) {
       if (window.innerWidth > 600) {
-        if (e.key === 'Enter' && e.ctrlKey) {
-          // Вставить перенос строки вручную
-          e.preventDefault();
-          const start = this.selectionStart;
-          const end = this.selectionEnd;
-          this.value = this.value.substring(0, start) + '\n' + this.value.substring(end);
-          this.selectionStart = this.selectionEnd = start + 1;
-        } else if (e.key === 'Enter' && !e.ctrlKey) {
+        if (e.key === 'Enter' && !e.ctrlKey) {
           e.preventDefault();
           chatForm.requestSubmit();
         }
+        // Ctrl+Enter — стандартный перенос строки
       }
     });
     // apiKeyInput теперь инициализируется внутри функций, чтобы всегда брать актуальный value
