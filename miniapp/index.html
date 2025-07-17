@@ -609,6 +609,7 @@
       font-optical-sizing: auto;
       font-variation-settings: "wdth" 100;
       font-weight: 100;
+      font-size: 0.85em;
     }
   </style>
 </head>
@@ -754,7 +755,7 @@
         const name = user.first_name || user.last_name || user.username || 'Гость';
         greeting = `Привет, ${name}`;
       } else {
-        greeting = 'Профиль пользователя не доступен.';
+        greeting = 'Профиль пользователя не доступен';
       }
       const div = document.createElement('div');
       div.className = 'msg assistant';
