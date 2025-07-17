@@ -548,6 +548,7 @@
     }
     .material-symbols-outlined.header-icon {
       color: #fff;
+      font-size: 18px;
       font-variation-settings:
         'FILL' 0,
         'wght' 200,
@@ -556,7 +557,7 @@
     }
     .material-symbols-outlined.send-icon {
       color: #fff;
-      font-size: 24px;
+      font-size: 18px;
       transform: rotate(-45deg) scale(0.67);
       display: inline-block;
       vertical-align: middle;
@@ -700,14 +701,20 @@
     // Telegram user info
     const tg = window.Telegram.WebApp;
     tg.ready();
-    const userInfo = document.getElementById('user-info');
-    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-      const user = tg.initDataUnsafe.user;
-      const name = user.first_name || user.last_name || user.username || 'Гость';
-      userInfo.textContent = `Привет, ${name}.`;
-    } else {
-      userInfo.textContent = 'User info not available.';
+    // Приветствие как блок ассистента
+    function appendAssistantGreeting() {
+      let name = 'Гость';
+      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        const user = tg.initDataUnsafe.user;
+        name = user.first_name || user.last_name || user.username || 'Гость';
+      }
+      const div = document.createElement('div');
+      div.className = 'msg assistant';
+      div.textContent = `Привет, ${name}.`;
+      chatbox.appendChild(div);
     }
+    // Скрыть user-info
+    document.getElementById('user-info').style.display = 'none';
 
     // Get DOM elements
     const chatbox = document.getElementById('chatbox');
