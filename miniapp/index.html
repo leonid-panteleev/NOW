@@ -574,7 +574,7 @@
     </div>
     <div class="user" id="user-info">Loading user info...</div>
     <div class="chatbox" id="chatbox"></div>
-    <form id="chat-form" class="input-row" autocomplete="off" onsubmit="return false;">
+    <form id="chat-form" class="input-row" autocomplete="off">
       <div class="input-wrapper">
         <textarea id="user-input" placeholder="Например: забронируй столик в ресторане на вечер" required rows="2"></textarea>
         <button type="submit" id="send-btn" title="Send">
@@ -694,11 +694,17 @@
     const userInput = document.getElementById('user-input');
     userInput.addEventListener('keydown', function(e) {
       if (window.innerWidth > 600) {
-        if (e.key === 'Enter' && !e.ctrlKey) {
+        if (e.key === 'Enter' && e.ctrlKey) {
+          // Вставить перенос строки вручную
+          e.preventDefault();
+          const start = this.selectionStart;
+          const end = this.selectionEnd;
+          this.value = this.value.substring(0, start) + '\n' + this.value.substring(end);
+          this.selectionStart = this.selectionEnd = start + 1;
+        } else if (e.key === 'Enter' && !e.ctrlKey) {
           e.preventDefault();
           chatForm.requestSubmit();
         }
-        // Ctrl+Enter — стандартный перенос строки
       }
     });
     // apiKeyInput теперь инициализируется внутри функций, чтобы всегда брать актуальный value
