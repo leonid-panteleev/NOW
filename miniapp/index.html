@@ -35,7 +35,7 @@
 </head>
 <body>
   <div class="container"> 
-    <h1>NOW v14.09</h1>
+    <h1>NOW v14.13</h1>
     <div class="user" id="user-info">Loading user info...</div>
     <div class="apikey">
       <input type="password" id="api-key" placeholder="Введите Gemini API Key" autocomplete="off" style="width:90%;margin-bottom:1em;" />
@@ -151,23 +151,42 @@
     
     // Функция для извлечения комментария GPT (объяснения), если он есть
     function extractGptComment(reply, items) {
-      // Удаляем из текста все названия и описания мероприятий, оставляя только комментарии
+      if (!reply) return '';
       let text = reply;
-      if (!text) return '';
-      // Удаляем блоки, похожие на карточки (названия, описания, цены и т.д.)
-      if (Array.isArray(items)) {
-        items.forEach(item => {
-          if (item.name) text = text.replaceAll(item.name, '');
-          if (item.description) text = text.replaceAll(item.description, '');
-          if (item.venue) text = text.replaceAll(item.venue, '');
-          if (item.price_range) text = text.replaceAll(item.price_range, '');
-          if (item.currency) text = text.replaceAll(item.currency, '');
-        });
-      }
-      // Удаляем лишние пустые строки
-      text = text.replace(/\n{2,}/g, '\n').trim();
-      // Если остался осмысленный текст — это комментарий
-      if (text && text.length > 10) return text;
+      // Удаляем все строки, которые содержат hash: <hash>
+      const lines = text.split('\n');
+      const hashPattern = /hash:\s*[a-fA-F0-9]{8,}/;
+      const ignorePatterns = [
+        /^\s*[-*•\d\.]+/, // markdown-списки, эмодзи, цифры
+        /^\s*\*\*/, // жирные markdown
+        /^\s*Описание:/i,
+        /^\s*Место:/i,
+        /^\s*Дата:/i,
+        /^\s*Время:/i,
+        /^\s*Цена:/i,
+        /^\s*Контакт:/i,
+        /^\s*Рейтинг:/i,
+        /^\s*Услуга:/i,
+        /^\s*Специализация:/i,
+        /^\s*Опыт:/i
+      ];
+      let filtered = lines.filter(line => {
+        if (!line.trim()) return false;
+        if (hashPattern.test(line)) return false;
+        if (ignorePatterns.some(re => re.test(line))) return false;
+        if (Array.isArray(items)) {
+          for (const item of items) {
+            if (item.name && line.includes(item.name)) return false;
+            if (item.description && line.includes(item.description)) return false;
+            if (item.venue && line.includes(item.venue)) return false;
+            if (item.price_range && line.includes(item.price_range)) return false;
+            if (item.currency && line.includes(item.currency)) return false;
+          }
+        }
+        return true;
+      });
+      const comment = filtered.join(' ').replace(/\s+/g, ' ').trim();
+      if (comment.length > 10) return comment;
       return '';
     }
     
@@ -376,7 +395,12 @@
         if (item.date) html += `Дата: ${item.date}<br>`;
         if (item.time) html += `Время: ${item.time}<br>`;
         if (item.price_range) html += `Цена: ${item.price_range} ${item.currency || 'RUB'}<br>`;
+        if (item.specialization) html += `Специализация: ${item.specialization}<br>`;
+        if (item.experience) html += `Опыт: ${item.experience}<br>`;
+        if (item.rating) html += `Рейтинг: ${item.rating}<br>`;
+        if (item.contact) html += `Контакт: ${item.contact}<br>`;
         if (item.description) html += `Описание: ${item.description}<br>`;
+        // Можно добавить другие поля по аналогии
         card.innerHTML = html;
         // Выбрать
         const selectBtn = document.createElement('button');
