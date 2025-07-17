@@ -6,6 +6,12 @@
   <title>Telegram Mini App</title>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap&subset=cyrillic" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add_card,key_vertical,send" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@100..800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@100..900&display=swap" rel="stylesheet">
   <style>
     html, body {
       height: 100%;
@@ -13,7 +19,10 @@
       padding: 0;
       background: #181c22;
       color: #fff;
-      font-family: 'Manrope', 'Inter', Arial, sans-serif;
+      font-family: 'Geologica', sans-serif;
+      font-optical-sizing: auto;
+      font-variation-settings: "slnt" 0, "CRSV" 0, "SHRP" 0;
+      font-weight: 300;
       box-sizing: border-box;
     }
     *, *:before, *:after {
@@ -181,6 +190,10 @@
       background: #22252a;
       color: #fff;
       align-self: flex-start;
+      font-family: 'Geologica', sans-serif;
+      font-optical-sizing: auto;
+      font-variation-settings: "slnt" 0, "CRSV" 0, "SHRP" 0;
+      font-weight: 100;
     }
     .msg.user {
       background: #23272f;
@@ -190,6 +203,10 @@
       border-radius: 8px;
       padding-left: 2.2em;
       padding-right: 2.2em;
+      font-family: 'Geologica', sans-serif;
+      font-optical-sizing: auto;
+      font-variation-settings: "slnt" 0, "CRSV" 0, "SHRP" 0;
+      font-weight: 100;
     }
     .msg.assistant {
       background: #22252a;
@@ -197,6 +214,10 @@
       border-radius: 8px;
       padding-left: 2.2em;
       padding-right: 2.2em;
+      font-family: 'Geologica', sans-serif;
+      font-optical-sizing: auto;
+      font-variation-settings: "slnt" 0, "CRSV" 0, "SHRP" 0;
+      font-weight: 100;
     }
     .booking-card {
       background: #23272f;
@@ -209,6 +230,10 @@
       max-width: 98vw;
       font-size: 1.04em;
       transition: border 0.2s, box-shadow 0.2s;
+      font-family: 'Geologica', sans-serif;
+      font-optical-sizing: auto;
+      font-variation-settings: "slnt" 0, "CRSV" 0, "SHRP" 0;
+      font-weight: 100;
     }
     .booking-card.selected {
       border: 2px solid #444;
@@ -385,6 +410,9 @@
       transition: border 0.2s;
       position: relative;
       line-height: 1.2;
+      font-family: 'Martian Mono', monospace;
+      font-optical-sizing: auto;
+      font-variation-settings: "wdth" 100;
     }
     .modal-content input[type="text"]:focus,
     .modal-content input[type="password"]:focus {
@@ -572,7 +600,7 @@
         'wght' 200,
         'GRAD' 0,
         'opsz' 24;
-      background: linear-gradient(115deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0) 100%);
+      background: linear-gradient(115deg, rgba(255,255,255,0.75) 60%, rgba(255,255,255,0) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
