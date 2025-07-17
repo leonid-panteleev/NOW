@@ -701,12 +701,10 @@
     // Telegram user info
     const tg = window.Telegram.WebApp;
     tg.ready();
-    // Get DOM elements
     const chatbox = document.getElementById('chatbox');
     const chatForm = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
 
-    // Приветствие как блок ассистента
     function appendAssistantGreeting() {
       let greeting = '';
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
@@ -726,13 +724,8 @@
       }
     }
     appendAssistantGreeting();
-    // Скрыть user-info
     document.getElementById('user-info').style.display = 'none';
 
-    // Get DOM elements
-    const chatbox = document.getElementById('chatbox');
-    const chatForm = document.getElementById('chat-form');
-    const userInput = document.getElementById('user-input');
     userInput.addEventListener('keydown', function(e) {
       if (window.innerWidth > 600) {
         if (e.key === 'Enter' && !e.ctrlKey) {
