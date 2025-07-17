@@ -37,7 +37,7 @@
       justify-content: space-between;
       padding: 1.2em 1.2em 0.5em 1.2em;
       background: transparent;
-      z-index: 10;
+      z-index: 1002;
     }
     .app-title {
       font-size: 1.2em;
@@ -117,6 +117,7 @@
       gap: 0.7em;
       font-size: 1.04em;
       scroll-behavior: smooth;
+      padding-bottom: 5em; /* чтобы input-row не перекрывал */
     }
     .msg {
       max-width: 80vw;
@@ -180,7 +181,7 @@
       display: flex;
       gap: 0.5em;
       padding: 0.7em 1.2em 1.2em 1.2em;
-      z-index: 100;
+      z-index: 1001;
       align-items: flex-end;
     }
     .input-row input {
@@ -215,6 +216,36 @@
       background: #7ecfff;
       color: #181c22;
     }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(24,28,34,0.85);
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active {
+      display: flex;
+      animation: fadeIn 0.2s;
+    }
+    .modal-content {
+      background: #23272f;
+      border-radius: 18px;
+      padding: 2em 1.5em 1.5em 1.5em;
+      box-shadow: 0 4px 24px #0008;
+      min-width: 320px;
+      max-width: 95vw;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1em; right: 1em;
+      font-size: 1.5em;
+      color: #7ecfff;
+      cursor: pointer;
+      z-index: 10;
+    }
     @media (max-width: 600px) {
       .chatbox, .msg, .booking-card {
         font-size: 0.98em;
@@ -239,10 +270,15 @@
 <body>
   <div class="container">
     <div class="header">
-      <span class="app-title">NOW v14.26</span>
-      <button class="key-btn" id="show-key-btn" title="API Key">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#23272f"/><path d="M17.7 13.35a3.5 3.5 0 1 0-1.41 1.41l2.13 2.13a1 1 0 0 0 1.41-1.41l-2.13-2.13zm-5.2.65a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" fill="#7ecfff"/></svg>
-      </button>
+      <span class="app-title">NOW v14.29</span>
+      <div style="display: flex; gap: 0.7em; align-items: center;">
+        <button class="key-btn" id="booking-btn" title="Оформить бронирование">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#23272f"/><path d="M12 7v5l4 2" stroke="#7ecfff" stroke-width="2" fill="none"/></svg>
+        </button>
+        <button class="key-btn" id="show-key-btn" title="API Key">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#23272f"/><path d="M17.7 13.35a3.5 3.5 0 1 0-1.41 1.41l2.13 2.13a1 1 0 0 0 1.41-1.41l-2.13-2.13zm-5.2.65a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" fill="#7ecfff"/></svg>
+        </button>
+      </div>
     </div>
     <div class="apikey-float" id="apikey-float">
       <label for="api-key">API Key</label>
@@ -281,6 +317,16 @@
         document.getElementById('api-key').focus();
       }
     };
+
+    // Кнопка "Оформить бронирование"
+    const bookingBtn = document.getElementById('booking-btn');
+    const paymentModal = document.getElementById('payment-modal');
+    bookingBtn.onclick = () => {
+      paymentModal.classList.add('active');
+    };
+    function closePaymentModal() {
+      paymentModal.classList.remove('active');
+    }
 
     // Telegram user info
     const tg = window.Telegram.WebApp;
