@@ -577,8 +577,10 @@
     <form id="chat-form" class="input-row" autocomplete="off" onsubmit="return false;">
       <div class="input-wrapper">
         <textarea id="user-input" placeholder="Например: забронируй столик в ресторане на вечер" required rows="2"></textarea>
-        <button type="button" id="send-btn" title="Send">
-          <svg viewBox="0 0 24 24"><path d="M4 12l16-7-7 16-2-7-7-2z"/></svg>
+        <button type="submit" id="send-btn" title="Send">
+          <svg width="24" height="24" viewBox="0 0 24 24" style="display:block;" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 12l16-7-7 16-2-7-7-2z" fill="#fff"/>
+          </svg>
         </button>
       </div>
     </form>
@@ -962,10 +964,7 @@
       }
     };
 
-    // Handle send button click
-    document.getElementById('send-btn').onclick = async () => {
-      chatForm.onsubmit(new Event('submit'));
-    };
+    // (Удалён отдельный обработчик send-btn, теперь отправка только через submit формы)
 
     // Payment logic (оставьте как было)
     // ... ваш код оплаты и закрытия модального окна ...
