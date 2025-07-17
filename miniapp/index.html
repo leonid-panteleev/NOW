@@ -624,12 +624,9 @@
       const apiKeyInput = document.getElementById('api-key');
       // Подставить сохранённый ключ, если есть
       const savedKey = localStorage.getItem('gemini_api_key') || '';
-      apiKeyInput.value = maskApiKey(savedKey);
-      apiKeyInput.setAttribute('data-real', savedKey);
+      apiKeyInput.value = savedKey;
       setTimeout(() => { apiKeyInput.focus(); }, 150);
       apiKeyInput.type = 'text';
-      apiKeyInput.setAttribute('data-masked', '1');
-      document.getElementById('api-key-toggle').textContent = '👁️';
     }
     function closeApikeyModal() {
       apikeyModal.classList.remove('active');
@@ -655,53 +652,6 @@
         closeApikeyModal();
         e.preventDefault();
       }
-    });
-    // Маска для API-ключа
-    function maskApiKey(val) {
-      if (!val) return '';
-      return '●'.repeat(val.length);
-    }
-    const apiKeyInput = document.getElementById('api-key');
-    apiKeyInput.addEventListener('input', function(e) {
-      // Получаем предыдущее значение
-      let real = this.getAttribute('data-real') || '';
-      let masked = this.value;
-      // Определяем, что изменилось
-      if (masked.length < real.length) {
-        // Удаление символа
-        real = real.slice(0, masked.length);
-      } else if (masked.length > real.length) {
-        // Добавление символа
-        const added = masked.length - real.length;
-        const newChar = masked.slice(-added);
-        real += newChar;
-      }
-      this.setAttribute('data-real', real);
-      if (this.getAttribute('data-masked') === '1') {
-        this.value = maskApiKey(real);
-      } else {
-        this.value = real;
-      }
-    });
-    // Кнопка показать/скрыть ключ
-    const apiKeyToggleBtn = document.getElementById('api-key-toggle');
-    apiKeyToggleBtn.addEventListener('mousedown', function() {
-      const input = document.getElementById('api-key');
-      input.value = input.getAttribute('data-real') || '';
-      input.setAttribute('data-masked', '0');
-      this.textContent = '🙈';
-    });
-    apiKeyToggleBtn.addEventListener('mouseup', function() {
-      const input = document.getElementById('api-key');
-      input.value = maskApiKey(input.getAttribute('data-real') || '');
-      input.setAttribute('data-masked', '1');
-      this.textContent = '👁️';
-    });
-    apiKeyToggleBtn.addEventListener('mouseleave', function() {
-      const input = document.getElementById('api-key');
-      input.value = maskApiKey(input.getAttribute('data-real') || '');
-      input.setAttribute('data-masked', '1');
-      this.textContent = '👁️';
     });
 
     // Кнопка "Оформить бронирование" (Привязать карту)
@@ -871,8 +821,7 @@
       e.preventDefault();
       e.stopPropagation();
 
-      const apiKey = document.getElementById('api-key').getAttribute('data-real') || '';
-      // или из localStorage, если поле пустое
+      const apiKey = document.getElementById('api-key').value || '';
       const apiKeyFinal = apiKey || localStorage.getItem('gemini_api_key') || '';
       if (!apiKeyFinal) {
         alert('Пожалуйста, введите ваш Gemini API Key!');
