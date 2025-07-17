@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Telegram Mini App</title>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap&subset=cyrillic" rel="stylesheet">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=send" />
   <style>
     html, body {
       height: 100%;
@@ -578,8 +577,10 @@
     <form id="chat-form" class="input-row" autocomplete="off">
       <div class="input-wrapper">
         <textarea id="user-input" placeholder="Например: забронируй столик в ресторане на вечер" required rows="2"></textarea>
-        <button type="submit" id="send-btn" title="Send" style="display:flex;align-items:center;justify-content:center;">
-          <span class="material-symbols-outlined send-icon-md" style="font-size:18px;transform:rotate(-45deg);color:#fff;">send</span>
+        <button type="submit" id="send-btn" title="Send">
+          <svg width="24" height="24" viewBox="0 0 24 24" style="display:block;" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 12l16-7-7 16-2-7-7-2z" fill="#fff"/>
+          </svg>
         </button>
       </div>
     </form>
@@ -801,4 +802,136 @@
         if (item.time) html += `Время: ${item.time}<br>`;
         if (item.price_range) html += `Цена: ${item.price_range} ${item.currency || 'RUB'}<br>`;
         if (item.specialization) html += `Специализация: ${item.specialization}<br>`;
-        if (item.experience) html += `Опыт: ${item.experience}<br>`
+        if (item.experience) html += `Опыт: ${item.experience}<br>`;
+        if (item.rating) html += `Рейтинг: ${item.rating}<br>`;
+        if (item.contact) html += `Контакт: ${item.contact}<br>`;
+        if (item.description) html += `Описание: ${item.description}<br>`;
+        card.innerHTML = html;
+        // Выбрать
+        const selectBtn = document.createElement('button');
+        selectBtn.className = 'booking-btn';
+        selectBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l7.1-7.1 1.4 1.4z"/></svg>Выбрать';
+        selectBtn.onclick = () => {
+          document.querySelectorAll('.booking-card.selected').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          selectedBookingItem = item;
+          document.querySelectorAll('.booking-card .confirm-btn').forEach(b => b.style.display = 'none');
+          confirmBtn.style.display = 'inline-block';
+        };
+        card.appendChild(selectBtn);
+        // Забронировать (по умолчанию скрыта)
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'booking-btn confirm-btn';
+        confirmBtn.style.background = '#28a745';
+        confirmBtn.style.display = 'none';
+        confirmBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zm0-13H5V6h14v1z"/></svg>Забронировать${item.price_range ? ' за ' + item.price_range + ' ' + (item.currency || 'RUB') : ''}`;
+        confirmBtn.onclick = () => showPaymentForm(item);
+        card.appendChild(confirmBtn);
+        document.getElementById('chatbox').appendChild(card);
+      });
+    }
+
+    // Handle form submission
+    chatForm.onsubmit = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const apiKey = document.getElementById('api-key').value || '';
+      const apiKeyFinal = apiKey || localStorage.getItem('gemini_api_key') || '';
+      if (!apiKeyFinal) {
+        alert('Пожалуйста, введите ваш Gemini API Key!');
+        return;
+      }
+
+      const content = userInput.value.trim();
+      if (!content) return;
+
+      appendMessage('user', content);
+      userInput.value = '';
+      appendMessage('assistant', 'Определяю нужные данные...');
+
+      try {
+        // First, ask Gemini to determine which data file is needed
+        const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
+
+        // Gemini file selection request
+        const fileRes = await fetch(GEMINI_ENDPOINT + '?key=' + apiKeyFinal, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8'
+          },
+          body: JSON.stringify({
+            contents: [
+              { parts: [ { text: fileSelectionPrompt + "\n\n" + content } ] }
+            ]
+          })
+        });
+        const fileData = await fileRes.json();
+        let selectedFile = '';
+        if (fileData.candidates && fileData.candidates[0] && fileData.candidates[0].content && fileData.candidates[0].content.parts && fileData.candidates[0].content.parts[0]) {
+          selectedFile = fileData.candidates[0].content.parts[0].text.trim().toLowerCase();
+        }
+        // Load the selected data file
+        if (dataFiles[selectedFile]) {
+          try {
+            const dataRes = await fetch(dataFiles[selectedFile]);
+            if (!dataRes.ok) {
+              throw new Error(`HTTP ${dataRes.status}: ${dataRes.statusText}`);
+            }
+            const loadedData = await dataRes.json();
+            currentData = loadedData;
+            dataLoaded = true;
+          } catch (dataError) {
+            chatbox.removeChild(chatbox.lastChild);
+            appendMessage('assistant', 'Ошибка: ' + dataError.message);
+            return;
+          }
+          chatbox.removeChild(chatbox.lastChild);
+          // Now create the main response with loaded data
+          const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n\nWhen the user confirms booking, respond as before.`;
+          // Gemini main response request
+          const mainRes = await fetch(GEMINI_ENDPOINT + '?key=' + apiKeyFinal, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8'
+            },
+            body: JSON.stringify({
+              contents: [
+                { parts: [ { text: systemPrompt + "\n\n" + content } ] }
+              ]
+            })
+          });
+          const mainData = await mainRes.json();
+          if (mainData.candidates && mainData.candidates[0] && mainData.candidates[0].content && mainData.candidates[0].content.parts && mainData.candidates[0].content.parts[0]) {
+            const reply = mainData.candidates[0].content.parts[0].text.trim();
+            let mentionedItems = [];
+            if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
+              mentionedItems = filterMentionedItemsByHash(currentData.data, reply);
+              let comment = extractGptComment(reply, mentionedItems);
+              if (comment) {
+                appendMessage('assistant', comment, null);
+              }
+              if (mentionedItems.length > 0) {
+                renderBookingCards(mentionedItems);
+              }
+            }
+          } else {
+            appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
+          }
+        } else {
+          chatbox.removeChild(chatbox.lastChild);
+          appendMessage('assistant', `Не удалось определить нужные данные (${selectedFile}). Попробуйте переформулировать запрос.`);
+        }
+      } catch (err) {
+        chatbox.removeChild(chatbox.lastChild);
+        appendMessage('assistant', 'Ошибка: ' + err.message);
+      }
+    };
+
+    // (Удалён отдельный обработчик send-btn, теперь отправка только через submit формы)
+
+    // Payment logic (оставьте как было)
+    // ... ваш код оплаты и закрытия модального окна ...
+  </script>
+</body>
+</html>
