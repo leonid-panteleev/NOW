@@ -603,6 +603,13 @@
       background-clip: text;
       text-fill-color: transparent;
     }
+    /* --- Исправление: явно задаём шрифт для #user-input, чтобы работало на iPhone --- */
+    #user-input {
+      font-family: 'Martian Mono', 'Roboto Mono', monospace !important;
+      font-optical-sizing: auto;
+      font-variation-settings: "wdth" 100;
+      font-weight: 100;
+    }
   </style>
 </head>
 <body>
@@ -613,7 +620,7 @@
       <h3>Введите Gemini API Key</h3>
       <div class="modal-input-wrap">
         <span class="input-icon">🔑</span>
-        <input type="text" id="api-key" placeholder="Gemini API Key" autocomplete="off" inputmode="text" spellcheck="false" style="padding-left:2.5em;width:100%;max-width:340px;border:2px solid #7ecfff;background:#232b36;color:#fff;font-size:1.15em;box-shadow:0 2px 12px #0003;border-radius:14px;" />
+        <input type="text" id="api-key" placeholder="Gemini API Key" autocomplete="off" inputmode="text" spellcheck="false" style="padding-left:2.5em;width:100%;max-width:340px;border:2px solid #7ecfff;background:#232b36;color:#fff;box-shadow:0 2px 12px #0003;border-radius:14px;" />
       </div>
       <button class="apikey-btn" id="apikey-save-btn" type="button" style="margin-top:0.7em;width:100%;display:flex;align-items:center;justify-content:center;background:#181a1f;color:#fff;border:1.5px solid #23272f;border-radius:50px;font-size:1.13em;font-weight:700;padding:0.9em 0;box-shadow:0 4px 16px #0008,0 0 0 2px #23272f inset;transition:box-shadow 0.2s,background 0.2s,border 0.2s;cursor:pointer;">Добавить</button>
     </div>
