@@ -365,7 +365,7 @@
     .modal-content input[type="text"],
     .modal-content input[type="password"] {
       width: 100%;
-      padding: 1em 1.2em 1em 2.5em;
+      padding: 0.95em 1.2em 0.95em 2.5em; /* чуть меньше padding-top/bottom */
       border-radius: 12px;
       border: 1.5px solid #333a;
       background: #181c22;
@@ -377,6 +377,7 @@
       outline: none;
       transition: border 0.2s;
       position: relative;
+      line-height: 1.2;
     }
     .modal-content input[type="text"]:focus,
     .modal-content input[type="password"]:focus {
@@ -386,10 +387,12 @@
       position: absolute;
       left: 1.1em;
       top: 50%;
-      transform: translateY(-50%);
-      font-size: 1.1em;
+      transform: translateY(-52%); /* было -50%, чуть ниже */
+      font-size: 1.3em; /* увеличено */
       color: #fff;
       pointer-events: none;
+      vertical-align: middle;
+      line-height: 1;
     }
     .modal-content .modal-input-wrap {
       position: relative;
@@ -549,10 +552,10 @@
       <h3>Введите Gemini API Key</h3>
       <div class="modal-input-wrap">
         <span class="input-icon">🔑</span>
-        <input type="text" id="api-key" placeholder="Gemini API Key" autocomplete="off" inputmode="text" spellcheck="false" />
-        <button type="button" id="api-key-toggle" style="position:absolute;right:0.7em;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.2em;color:#7ecfff;z-index:2;" tabindex="-1" aria-label="Показать/скрыть ключ">👁️</button>
+        <input type="text" id="api-key" placeholder="Gemini API Key" autocomplete="off" inputmode="text" spellcheck="false" style="padding-left:2.5em;" />
+        <button type="button" id="api-key-toggle" style="position:absolute;right:0.7em;top:50%;transform:translateY(-70%);background:none;border:none;cursor:pointer;font-size:1.2em;color:#7ecfff;z-index:2;display:flex;align-items:center;justify-content:center;width:2em;height:2.2em;padding:0;" tabindex="-1" aria-label="Показать/скрыть ключ">👁️</button>
       </div>
-      <button class="apikey-btn" id="apikey-save-btn" type="button">OK</button>
+      <button class="apikey-btn" id="apikey-save-btn" type="button" style="margin-top:0.7em;width:100%;display:flex;align-items:center;justify-content:center;background:#181a1f;color:#fff;border:1.5px solid #23272f;border-radius:50px;font-size:1.13em;font-weight:700;padding:0.9em 0;box-shadow:0 4px 16px #0008,0 0 0 2px #23272f inset;transition:box-shadow 0.2s,background 0.2s,border 0.2s;cursor:pointer;">OK</button>
     </div>
   </div>
   <div class="container">
@@ -677,19 +680,25 @@
       }
     });
     // Кнопка показать/скрыть ключ
-    document.getElementById('api-key-toggle').onclick = function() {
+    const apiKeyToggleBtn = document.getElementById('api-key-toggle');
+    apiKeyToggleBtn.addEventListener('mousedown', function() {
       const input = document.getElementById('api-key');
-      if (input.getAttribute('data-masked') === '1') {
-        input.value = input.getAttribute('data-real') || '';
-        input.setAttribute('data-masked', '0');
-        this.textContent = '🙈';
-      } else {
-        input.value = maskApiKey(input.getAttribute('data-real') || '');
-        input.setAttribute('data-masked', '1');
-        this.textContent = '👁️';
-      }
-      input.focus();
-    };
+      input.value = input.getAttribute('data-real') || '';
+      input.setAttribute('data-masked', '0');
+      this.textContent = '🙈';
+    });
+    apiKeyToggleBtn.addEventListener('mouseup', function() {
+      const input = document.getElementById('api-key');
+      input.value = maskApiKey(input.getAttribute('data-real') || '');
+      input.setAttribute('data-masked', '1');
+      this.textContent = '👁️';
+    });
+    apiKeyToggleBtn.addEventListener('mouseleave', function() {
+      const input = document.getElementById('api-key');
+      input.value = maskApiKey(input.getAttribute('data-real') || '');
+      input.setAttribute('data-masked', '1');
+      this.textContent = '👁️';
+    });
 
     // Кнопка "Оформить бронирование" (Привязать карту)
     const bookingBtn = document.getElementById('booking-btn');
