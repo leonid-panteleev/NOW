@@ -316,11 +316,13 @@
       display: none;
       position: fixed;
       z-index: 2000;
-      left: 0; top: 0; width: 100vw; height: 100vh;
+      left: 0; top: 0; width: 100vw;
+      min-height: 100dvh;
       background: rgba(24,28,34,0.85);
       align-items: center;
       justify-content: center;
       box-sizing: border-box;
+      overflow-y: auto;
     }
     .modal.active {
       display: flex;
@@ -343,6 +345,8 @@
       border: 1.5px solid #23272f;
       box-shadow: 0 8px 32px #000b, 0 0 0 2px #23272f inset;
       animation: fadeIn 0.25s;
+      max-height: 90dvh;
+      overflow-y: auto;
     }
     .modal-content .modal-icon {
       font-size: 2.5em;
