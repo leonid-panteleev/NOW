@@ -35,7 +35,7 @@
 </head>
 <body>
   <div class="container"> 
-    <h1>NOW v13.30</h1>
+    <h1>NOW v13.32</h1>
     <div class="user" id="user-info">Loading user info...</div>
     <div class="apikey">
       <input type="password" id="api-key" placeholder="Введите Gemini API Key" autocomplete="off" style="width:90%;margin-bottom:1em;" />
@@ -148,6 +148,28 @@
     // DeepSeek API key (hardcoded as per user request)
     // const GEMINI_API_KEY = 'AIzaSyAWRejhuWkpCbboRiXza2TqQRI6NGSvAuk';
     const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    
+    // Функция для извлечения комментария GPT (объяснения), если он есть
+    function extractGptComment(reply, items) {
+      // Удаляем из текста все названия и описания мероприятий, оставляя только комментарии
+      let text = reply;
+      if (!text) return '';
+      // Удаляем блоки, похожие на карточки (названия, описания, цены и т.д.)
+      if (Array.isArray(items)) {
+        items.forEach(item => {
+          if (item.name) text = text.replaceAll(item.name, '');
+          if (item.description) text = text.replaceAll(item.description, '');
+          if (item.venue) text = text.replaceAll(item.venue, '');
+          if (item.price_range) text = text.replaceAll(item.price_range, '');
+          if (item.currency) text = text.replaceAll(item.currency, '');
+        });
+      }
+      // Удаляем лишние пустые строки
+      text = text.replace(/\n{2,}/g, '\n').trim();
+      // Если остался осмысленный текст — это комментарий
+      if (text && text.length > 10) return text;
+      return '';
+    }
     
     // Handle form submission
     chatForm.onsubmit = async (e) => {
