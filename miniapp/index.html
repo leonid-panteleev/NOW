@@ -173,7 +173,7 @@
     }
     .msg {
       max-width: 80vw;
-      padding: 0.9em 1.2em;
+      padding: 0.9em 2.2em;
       border-radius: 8px;
       margin-bottom: 0.2em;
       word-break: break-word;
@@ -188,11 +188,15 @@
       align-self: flex-end;
       box-shadow: 0 2px 8px #1a6cff33;
       border-radius: 8px;
+      padding-left: 2.2em;
+      padding-right: 2.2em;
     }
     .msg.assistant {
       background: #22252a;
       color: #fff;
       border-radius: 8px;
+      padding-left: 2.2em;
+      padding-right: 2.2em;
     }
     .booking-card {
       background: #23272f;
@@ -716,7 +720,7 @@
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         const user = tg.initDataUnsafe.user;
         const name = user.first_name || user.last_name || user.username || 'Гость';
-        greeting = `Привет, ${name}.`;
+        greeting = `Привет, ${name}`;
       } else {
         greeting = 'Профиль пользователя не доступен.';
       }
