@@ -182,8 +182,8 @@
           },
           body: JSON.stringify({
             contents: [
-              { parts: [ { text: fileSelectionPrompt } ] },
-              { parts: [ { text: content } ] }
+              { role: 'user', parts: [ { text: fileSelectionPrompt } ] },
+              { role: 'user', parts: [ { text: content } ] }
             ]
           })
         });
@@ -223,8 +223,8 @@
             },
             body: JSON.stringify({
               contents: [
-                { parts: [ { text: systemPrompt } ] },
-                { parts: [ { text: content } ] }
+                { role: 'user', parts: [ { text: systemPrompt } ] },
+                { role: 'user', parts: [ { text: content } ] }
               ]
             })
           });
