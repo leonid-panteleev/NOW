@@ -144,6 +144,10 @@
       paymentForm.scrollIntoView({ behavior: 'smooth' });
     }
     
+    // Gemini API key (hardcoded as per user request)
+    const GEMINI_API_KEY = 'AIzaSyAWRejhuWkpCbboRiXza2TqQRI6NGSvAuk';
+    const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    
     // Handle form submission
     chatForm.onsubmit = async (e) => {
       e.preventDefault();
@@ -151,11 +155,12 @@
       
       console.log('Form submitted, preventing default behavior');
       
-      const apiKey = apiKeyInput.value.trim();
-      if (!apiKey) {
-        alert('Please enter your OpenAI API key.');
-        return;
-      }
+      // No need for API key input, using Gemini key
+      // const apiKey = apiKeyInput.value.trim();
+      // if (!apiKey) {
+      //   alert('Please enter your OpenAI API key.');
+      //   return;
+      // }
       
       const content = userInput.value.trim();
       if (!content) return;
@@ -168,71 +173,39 @@
         console.log('=== STARTING REQUEST ===');
         console.log('User input:', content);
         
-        // First, ask GPT to determine which data file is needed
-        const fileSelectionMessage = {
-          role: 'system',
-          content: `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.
-
-Available files:
-- events-moscow.json (events in Moscow)
-- events-spb.json (events in Saint Petersburg) 
-- people-moscow.json (professionals in Moscow)
-- contractors-moscow.json (construction/repair services in Moscow)
-- services-moscow.json (various services in Moscow)
-
-Respond ONLY with the filename (e.g., "events-moscow") without .json extension.`
-        };
+        // First, ask Gemini to determine which data file is needed
+        const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., \"events-moscow\") without .json extension.`;
         
-        console.log('File selection message:', fileSelectionMessage);
-        
-        // First request - determine file
-        console.log('Sending file selection request to OpenAI...');
-        const fileRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        // Gemini file selection request
+        const fileRes = await fetch(GEMINI_ENDPOINT + '?key=' + GEMINI_API_KEY, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Authorization': 'Bearer ' + apiKey
+            'Content-Type': 'application/json; charset=utf-8'
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            store: true,
-            messages: [fileSelectionMessage, {role: 'user', content}]
+            contents: [
+              { parts: [ { text: fileSelectionPrompt } ] },
+              { parts: [ { text: content } ] }
+            ]
           })
         });
         
-        console.log('File selection response status:', fileRes.status);
-        console.log('File selection response headers:', fileRes.headers);
-        
         const fileData = await fileRes.json();
-        console.log('File selection response data:', fileData);
-        
+        console.log('Gemini file selection response:', fileData);
         let selectedFile = '';
-        
-        if (fileData.choices && fileData.choices[0] && fileData.choices[0].message) {
-          selectedFile = fileData.choices[0].message.content.trim().toLowerCase();
+        if (fileData.candidates && fileData.candidates[0] && fileData.candidates[0].content && fileData.candidates[0].content.parts && fileData.candidates[0].content.parts[0]) {
+          selectedFile = fileData.candidates[0].content.parts[0].text.trim().toLowerCase();
           console.log('Selected file:', selectedFile);
-          console.log('Available files:', Object.keys(dataFiles));
         } else {
           console.error('File selection failed:', fileData);
-          console.error('File selection error details:', fileData.error);
         }
-        
         // Load the selected data file
-        console.log('=== LOADING DATA FILE ===');
-        console.log('Trying to load file:', selectedFile);
-        console.log('File path:', dataFiles[selectedFile]);
-        
         if (dataFiles[selectedFile]) {
-          console.log('File found in mapping, loading...');
           try {
             const dataRes = await fetch(dataFiles[selectedFile]);
-            console.log('Data file response status:', dataRes.status);
-            console.log('Data file response headers:', dataRes.headers);
-            
             if (!dataRes.ok) {
               throw new Error(`HTTP ${dataRes.status}: ${dataRes.statusText}`);
             }
-            
             const loadedData = await dataRes.json();
             currentData = loadedData;
             dataLoaded = true;
@@ -241,58 +214,37 @@ Respond ONLY with the filename (e.g., "events-moscow") without .json extension.`
             console.error('Error loading data file:', dataError);
             throw dataError;
           }
-          
-          // Remove the "Определяю нужные данные..." message
           chatbox.removeChild(chatbox.lastChild);
-          
           // Now create the main response with loaded data
-          console.log('=== CREATING MAIN RESPONSE ===');
-          const systemMessage = {
-            role: 'system',
-            content: `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: When a user confirms they want to book something (says \"да\", \"хочу\", \"бронирую\", \"выбираю\", \"подтверждаю\", etc.), you MUST respond with:\n1. A confirmation message\n2. The exact item ID from the data (e.g., \"m1\", \"sp2\", \"mp1\", etc.)\n3. Start your response with \"BOOKING_CONFIRMED:\" followed by the item ID\n\nExample: \"BOOKING_CONFIRMED:m1 - Отлично! Бронирую для вас концерт группы 'Время'...\"\n\nProvide detailed, helpful responses based on the available data. Include prices, contact information, and relevant details.`
-          };
-          
-          console.log('System message created, length:', systemMessage.content.length);
-          
-          // Send the main request with loaded data
-          console.log('Sending main response request to OpenAI...');
-          const mainRes = await fetch('https://api.openai.com/v1/chat/completions', {
+          const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: When a user confirms they want to book something (says \"да\", \"хочу\", \"бронирую\", \"выбираю\", \"подтверждаю\", etc.), you MUST respond with:\n1. A confirmation message\n2. The exact item ID from the data (e.g., \"m1\", \"sp2\", \"mp1\", etc.)\n3. Start your response with \"BOOKING_CONFIRMED:\" followed by the item ID\n\nExample: \"BOOKING_CONFIRMED:m1 - Отлично! Бронирую для вас концерт группы 'Время'...\"\n\nProvide detailed, helpful responses based on the available data. Include prices, contact information, and relevant details.`;
+          // Gemini main response request
+          const mainRes = await fetch(GEMINI_ENDPOINT + '?key=' + GEMINI_API_KEY, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json; charset=utf-8',
-              'Authorization': 'Bearer ' + apiKey
+              'Content-Type': 'application/json; charset=utf-8'
             },
             body: JSON.stringify({
-              model: 'gpt-4o-mini',
-              store: true,
-              messages: [systemMessage, {role: 'user', content}]
+              contents: [
+                { parts: [ { text: systemPrompt } ] },
+                { parts: [ { text: content } ] }
+              ]
             })
           });
-          
-          console.log('Main response status:', mainRes.status);
-          console.log('Main response headers:', mainRes.headers);
-          
           const mainData = await mainRes.json();
-          console.log('Main response data:', mainData);
-          
-                    if (mainData.choices && mainData.choices[0] && mainData.choices[0].message) {
-            const reply = mainData.choices[0].message.content.trim();
-            console.log('GPT reply:', reply);
-            appendMessage('assistant', reply, null); // No bookingData for main text
+          console.log('Gemini main response:', mainData);
+          if (mainData.candidates && mainData.candidates[0] && mainData.candidates[0].content && mainData.candidates[0].content.parts && mainData.candidates[0].content.parts[0]) {
+            const reply = mainData.candidates[0].content.parts[0].text.trim();
+            appendMessage('assistant', reply, null);
             messages.push({role: 'user', content});
             messages.push({role: 'assistant', content: reply});
-            // Render booking cards for each relevant item
             if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
               renderBookingCards(currentData.data);
             }
           } else {
             console.error('Main response failed:', mainData);
-            console.error('Main response error details:', mainData.error);
             appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
           }
         } else {
-          console.log('File not found in mapping:', selectedFile);
-          console.log('Available files in mapping:', Object.keys(dataFiles));
           chatbox.removeChild(chatbox.lastChild);
           appendMessage('assistant', `Не удалось определить нужные данные (${selectedFile}). Попробуйте переформулировать запрос.`);
         }
@@ -308,161 +260,8 @@ Respond ONLY with the filename (e.g., "events-moscow") without .json extension.`
     
     // Handle send button click
     document.getElementById('send-btn').onclick = async () => {
-      console.log('Send button clicked');
-      
-      const apiKey = apiKeyInput.value.trim();
-      if (!apiKey) {
-        alert('Please enter your OpenAI API key.');
-        return;
-      }
-      
-      const content = userInput.value.trim();
-      if (!content) return;
-      
-      appendMessage('user', content);
-      userInput.value = '';
-      appendMessage('assistant', 'Определяю нужные данные...');
-      
-      try {
-        console.log('=== STARTING REQUEST ===');
-        console.log('User input:', content);
-        
-        // First, ask GPT to determine which data file is needed
-        const fileSelectionMessage = {
-          role: 'system',
-          content: `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.
-
-Available files:
-- events-moscow.json (events in Moscow)
-- events-spb.json (events in Saint Petersburg) 
-- people-moscow.json (professionals in Moscow)
-- contractors-moscow.json (construction/repair services in Moscow)
-- services-moscow.json (various services in Moscow)
-
-Respond ONLY with the filename (e.g., "events-moscow") without .json extension.`
-        };
-        
-        console.log('File selection message:', fileSelectionMessage);
-        
-        // First request - determine file
-        console.log('Sending file selection request to OpenAI...');
-        const fileRes = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Authorization': 'Bearer ' + apiKey
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            store: true,
-            messages: [fileSelectionMessage, {role: 'user', content}]
-          })
-        });
-        
-        console.log('File selection response status:', fileRes.status);
-        console.log('File selection response headers:', fileRes.headers);
-        
-        const fileData = await fileRes.json();
-        console.log('File selection response data:', fileData);
-        
-        let selectedFile = '';
-        
-        if (fileData.choices && fileData.choices[0] && fileData.choices[0].message) {
-          selectedFile = fileData.choices[0].message.content.trim().toLowerCase();
-          console.log('Selected file:', selectedFile);
-          console.log('Available files:', Object.keys(dataFiles));
-        } else {
-          console.error('File selection failed:', fileData);
-          console.error('File selection error details:', fileData.error);
-        }
-        
-        // Load the selected data file
-        console.log('=== LOADING DATA FILE ===');
-        console.log('Trying to load file:', selectedFile);
-        console.log('File path:', dataFiles[selectedFile]);
-        
-        if (dataFiles[selectedFile]) {
-          console.log('File found in mapping, loading...');
-          try {
-            const dataRes = await fetch(dataFiles[selectedFile]);
-            console.log('Data file response status:', dataRes.status);
-            console.log('Data file response headers:', dataRes.headers);
-            
-            if (!dataRes.ok) {
-              throw new Error(`HTTP ${dataRes.status}: ${dataRes.statusText}`);
-            }
-            
-            const loadedData = await dataRes.json();
-            currentData = loadedData;
-            dataLoaded = true;
-            console.log('Data loaded successfully:', currentData);
-          } catch (dataError) {
-            console.error('Error loading data file:', dataError);
-            throw dataError;
-          }
-          
-          // Remove the "Определяю нужные данные..." message
-          chatbox.removeChild(chatbox.lastChild);
-          
-          // Now create the main response with loaded data
-          console.log('=== CREATING MAIN RESPONSE ===');
-          const systemMessage = {
-            role: 'system',
-            content: `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: When a user confirms they want to book something (says \"да\", \"хочу\", \"бронирую\", \"выбираю\", \"подтверждаю\", etc.), you MUST respond with:\n1. A confirmation message\n2. The exact item ID from the data (e.g., \"m1\", \"sp2\", \"mp1\", etc.)\n3. Start your response with \"BOOKING_CONFIRMED:\" followed by the item ID\n\nExample: \"BOOKING_CONFIRMED:m1 - Отлично! Бронирую для вас концерт группы 'Время'...\"\n\nProvide detailed, helpful responses based on the available data. Include prices, contact information, and relevant details.`
-          };
-          
-          console.log('System message created, length:', systemMessage.content.length);
-          
-          // Send the main request with loaded data
-          console.log('Sending main response request to OpenAI...');
-          const mainRes = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json; charset=utf-8',
-              'Authorization': 'Bearer ' + apiKey
-            },
-            body: JSON.stringify({
-              model: 'gpt-4o-mini',
-              store: true,
-              messages: [systemMessage, {role: 'user', content}]
-            })
-          });
-          
-          console.log('Main response status:', mainRes.status);
-          console.log('Main response headers:', mainRes.headers);
-          
-          const mainData = await mainRes.json();
-          console.log('Main response data:', mainData);
-          
-          if (mainData.choices && mainData.choices[0] && mainData.choices[0].message) {
-            const reply = mainData.choices[0].message.content.trim();
-            console.log('GPT reply:', reply);
-            appendMessage('assistant', reply, null); // No bookingData for main text
-            messages.push({role: 'user', content});
-            messages.push({role: 'assistant', content: reply});
-            // Render booking cards for each relevant item
-            if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
-              renderBookingCards(currentData.data);
-            }
-          } else {
-            console.error('Main response failed:', mainData);
-            console.error('Main response error details:', mainData.error);
-            appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
-          }
-        } else {
-          console.log('File not found in mapping:', selectedFile);
-          console.log('Available files in mapping:', Object.keys(dataFiles));
-          chatbox.removeChild(chatbox.lastChild);
-          appendMessage('assistant', `Не удалось определить нужные данные (${selectedFile}). Попробуйте переформулировать запрос.`);
-        }
-      } catch (err) {
-        console.error('=== ERROR OCCURRED ===');
-        console.error('Error type:', err.name);
-        console.error('Error message:', err.message);
-        console.error('Error stack:', err.stack);
-        chatbox.removeChild(chatbox.lastChild);
-        appendMessage('assistant', 'Ошибка: ' + err.message);
-      }
+      // Just trigger the form submit
+      chatForm.onsubmit(new Event('submit'));
     };
     
     // Handle payment
