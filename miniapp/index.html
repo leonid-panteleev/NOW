@@ -518,6 +518,19 @@
         height: 48px;
       }
     }
+    .modal, .modal-content {
+      -webkit-overflow-scrolling: touch;
+    }
+    @media (max-width: 600px) {
+      .modal {
+        position: absolute;
+        align-items: flex-start;
+        justify-content: flex-start;
+      }
+      .modal-content {
+        margin-top: 15vh;
+      }
+    }
   </style>
 </head>
 <body>
