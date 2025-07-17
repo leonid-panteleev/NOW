@@ -543,6 +543,7 @@
         <span class="input-icon">🔑</span>
         <input type="password" id="api-key" placeholder="Gemini API Key" autocomplete="off" />
       </div>
+      <div style="min-height:80px;"></div>
       <button class="apikey-btn" id="apikey-save-btn" type="button">OK</button>
     </div>
   </div>
@@ -609,7 +610,7 @@
       // Подставить сохранённый ключ, если есть
       const savedKey = localStorage.getItem('gemini_api_key') || '';
       apiKeyInput.value = savedKey;
-      apiKeyInput.focus();
+      setTimeout(() => { apiKeyInput.focus(); }, 150);
     }
     function closeApikeyModal() {
       apikeyModal.classList.remove('active');
