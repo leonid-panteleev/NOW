@@ -531,11 +531,19 @@
         margin-top: 15vh;
       }
     }
+    .modal-content.apikey-modal-content {
+      min-height: 320px;
+    }
+    @media (max-width: 600px) {
+      .modal-content.apikey-modal-content {
+        min-height: 220px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="modal" id="apikey-modal">
-    <div class="modal-content">
+    <div class="modal-content apikey-modal-content">
       <span class="modal-close" onclick="closeApikeyModal()">&times;</span>
       <span class="modal-icon">🔑</span>
       <h3>Введите Gemini API Key</h3>
@@ -543,7 +551,6 @@
         <span class="input-icon">🔑</span>
         <input type="password" id="api-key" placeholder="Gemini API Key" autocomplete="off" />
       </div>
-      <div style="min-height:80px;"></div>
       <button class="apikey-btn" id="apikey-save-btn" type="button">OK</button>
     </div>
   </div>
