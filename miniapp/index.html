@@ -37,6 +37,9 @@
   <div class="container"> 
     <h1>NOW v12.50</h1>
     <div class="user" id="user-info">Loading user info...</div>
+    <div class="apikey">
+      <input type="password" id="api-key" placeholder="Введите Gemini API Key" autocomplete="off" style="width:90%;margin-bottom:1em;" />
+    </div>
     <!-- Удалён блок ввода API-ключа -->
     <div class="chatbox" id="chatbox"></div>
     <form id="chat-form" class="input-row" autocomplete="off" onsubmit="return false;">
@@ -143,7 +146,7 @@
     }
     
     // Gemini API key (hardcoded as per user request)
-    const GEMINI_API_KEY = 'AIzaSyAWRejhuWkpCbboRiXza2TqQRI6NGSvAuk';
+    // const GEMINI_API_KEY = 'AIzaSyAWRejhuWkpCbboRiXza2TqQRI6NGSvAuk';
     const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
     
     // Handle form submission
@@ -152,13 +155,11 @@
       e.stopPropagation();
       
       console.log('Form submitted, preventing default behavior');
-      
-      // No need for API key input, using Gemini key
-      // const apiKey = apiKeyInput.value.trim();
-      // if (!apiKey) {
-      //   alert('Please enter your OpenAI API key.');
-      //   return;
-      // }
+      const apiKey = document.getElementById('api-key').value.trim();
+      if (!apiKey) {
+        alert('Пожалуйста, введите ваш Gemini API Key!');
+        return;
+      }
       
       const content = userInput.value.trim();
       if (!content) return;
@@ -175,7 +176,7 @@
         const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., \"events-moscow\") without .json extension.`;
         
         // Gemini file selection request
-        const fileRes = await fetch(GEMINI_ENDPOINT + '?key=' + GEMINI_API_KEY, {
+        const fileRes = await fetch(GEMINI_ENDPOINT + '?key=' + apiKey, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json; charset=utf-8'
@@ -216,7 +217,7 @@
           // Now create the main response with loaded data
           const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: When a user confirms they want to book something (says \"да\", \"хочу\", \"бронирую\", \"выбираю\", \"подтверждаю\", etc.), you MUST respond with:\n1. A confirmation message\n2. The exact item ID from the data (e.g., \"m1\", \"sp2\", \"mp1\", etc.)\n3. Start your response with \"BOOKING_CONFIRMED:\" followed by the item ID\n\nExample: \"BOOKING_CONFIRMED:m1 - Отлично! Бронирую для вас концерт группы 'Время'...\"\n\nProvide detailed, helpful responses based on the available data. Include prices, contact information, and relevant details.`;
           // Gemini main response request
-          const mainRes = await fetch(GEMINI_ENDPOINT + '?key=' + GEMINI_API_KEY, {
+          const mainRes = await fetch(GEMINI_ENDPOINT + '?key=' + apiKey, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json; charset=utf-8'
