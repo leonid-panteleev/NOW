@@ -35,7 +35,7 @@
 </head>
 <body>
   <div class="container"> 
-    <h1>NOW v12.21</h1>
+    <h1>NOW v12.24</h1>
     <div class="user" id="user-info">Loading user info...</div>
     <!-- Удалён блок ввода API-ключа -->
     <div class="chatbox" id="chatbox"></div>
@@ -235,8 +235,12 @@
             appendMessage('assistant', reply, null);
             messages.push({role: 'user', content});
             messages.push({role: 'assistant', content: reply});
+            // Показываем карточки только для упомянутых Gemini вариантов
             if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
-              renderBookingCards(currentData.data);
+              const mentionedItems = filterMentionedItems(currentData.data, reply);
+              if (mentionedItems.length > 0) {
+                renderBookingCards(mentionedItems);
+              }
             }
           } else {
             console.error('Main response failed:', mainData);
@@ -380,6 +384,18 @@
     const style = document.createElement('style');
     style.innerHTML = `.booking-card.selected { border: 2px solid #28a745; box-shadow: 0 0 0 2px #28a74533; }`;
     document.head.appendChild(style);
+
+    // Добавляю функцию для фильтрации упомянутых Gemini вариантов
+    function filterMentionedItems(items, replyText) {
+      // Считаем, что элемент упомянут, если его name или id встречается в тексте ответа (без учёта регистра)
+      const lowerReply = replyText.toLowerCase();
+      return items.filter(item => {
+        if (!item.name && !item.id) return false;
+        const nameMatch = item.name && lowerReply.includes(item.name.toLowerCase());
+        const idMatch = item.id && lowerReply.includes(item.id.toLowerCase());
+        return nameMatch || idMatch;
+      });
+    }
   </script>
 </body>
 </html>
