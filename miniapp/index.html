@@ -103,103 +103,27 @@
       height: 22px;
       fill: #7ecfff;
     }
-    .apikey-float {
-      display: none;
-      position: fixed;
-      top: 92px;
-      right: 24px;
-      z-index: 1001;
-      background: #23272f;
-      padding: 2.7em 2.2em 2.2em 2.2em;
-      border-radius: 22px;
-      border: 1.5px solid #23272f;
-      box-shadow: 0 10px 36px #000c, 0 0 0 2px #23272f inset;
-      animation: fadeIn 0.25s;
-      min-width: 270px;
-      max-width: 360px;
+    /* Удаляю .apikey-float и .apikey-modal-backdrop, теперь используется .modal */
+    .apikey-btn {
       width: 100%;
-      overflow: visible;
-      position: fixed;
-    }
-    .apikey-float::before {
-      content: '';
-      display: block;
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      border-radius: 22px 22px 0 0;
-      background: #23272f;
-      opacity: 0.18;
-    }
-    .apikey-float.active {
-      display: block;
-      animation: fadeIn 0.2s;
-    }
-    .apikey-float .apikey-icon {
-      font-size: 2.2em;
-      margin-bottom: 0.2em;
-      filter: drop-shadow(0 2px 8px #0008);
-      user-select: none;
+      min-width: 0;
       display: flex;
+      align-items: center;
       justify-content: center;
-      margin-top: -0.5em;
-    }
-    .apikey-float .apikey-title {
-      font-size: 1.22em;
-      font-weight: 700;
-      margin: 0 0 0.5em 0;
-      letter-spacing: 0.7px;
-      text-align: center;
-      color: #fff;
-      text-shadow: 0 2px 8px #0006;
-    }
-    .apikey-float .apikey-desc {
-      font-size: 1em;
-      color: #fff;
-      margin-bottom: 1.3em;
-      text-align: center;
-      opacity: 0.85;
-    }
-    .apikey-float .apikey-input-wrap {
-      position: relative;
-      width: 100%;
-      margin-bottom: 1.3em;
-    }
-    .apikey-float input {
-      width: 100%;
-      padding: 1.1em 1.2em 1.1em 1.2em;
-      border-radius: 13px;
-      border: 1.5px solid #333a;
-      background: #181c22;
-      color: #fff;
-      font-size: 1.09em;
-      margin-bottom: 0;
-      box-shadow: 0 2px 8px #0002;
-      box-sizing: border-box;
-      outline: none;
-      transition: border 0.2s;
-      position: relative;
-    }
-    .apikey-float input:focus {
-      border: 1.5px solid #7ecfff;
-    }
-    .apikey-float .apikey-btn {
-      width: 100%;
-      display: block;
       background: #181c22;
       color: #fff;
       border: 1.5px solid #23272f;
-      border-radius: 50px;
-      font-size: 1.09em;
+      border-radius: 18px;
+      font-size: 1.13em;
       font-weight: 700;
-      padding: 1em 0;
       box-shadow: 0 4px 16px #0008, 0 0 0 2px #23272f inset;
       transition: box-shadow 0.2s, background 0.2s, color 0.2s;
       cursor: pointer;
-      margin-top: 0.3em;
+      margin: 0;
       letter-spacing: 0.5px;
+      padding: 0.8em 1.5em;
     }
-    .apikey-float .apikey-btn:hover, .apikey-float .apikey-btn:focus {
+    .apikey-btn:hover, .apikey-btn:focus {
       background: #23272f;
       color: #fff;
       box-shadow: 0 6px 24px #000b, 0 0 0 2.5px #23272f inset;
@@ -434,7 +358,8 @@
       text-align: center;
       color: #fff;
     }
-    .modal-content input[type="text"] {
+    .modal-content input[type="text"],
+    .modal-content input[type="password"] {
       width: 100%;
       padding: 1em 1.2em 1em 2.5em;
       border-radius: 12px;
@@ -449,7 +374,8 @@
       transition: border 0.2s;
       position: relative;
     }
-    .modal-content input[type="text"]:focus {
+    .modal-content input[type="text"]:focus,
+    .modal-content input[type="password"]:focus {
       border: 1.5px solid #7ecfff;
     }
     .modal-content .input-icon {
@@ -561,10 +487,48 @@
       margin-right: 0.5em;
       vertical-align: middle;
     }
+    @media (max-width: 900px) {
+      .apikey-float-inner {
+        flex-direction: column;
+        align-items: stretch;
+        min-width: 0;
+        max-width: 99vw;
+        width: 99vw;
+        padding: 1.2em 0.7em 1.2em 0.7em;
+        gap: 1.1em;
+      }
+      .apikey-float .apikey-icon {
+        margin: 0 0 0.7em 0;
+        justify-content: center;
+      }
+      .apikey-float input {
+        margin-bottom: 1.1em;
+        min-width: 0;
+        max-width: 100%;
+      }
+      .apikey-float .apikey-btn {
+        width: 100%;
+        min-width: 0;
+        border-radius: 50px;
+        margin-top: 0.7em;
+        height: 48px;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="modal-backdrop" id="apikey-backdrop"></div>
+  <div class="modal" id="apikey-modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeApikeyModal()">&times;</span>
+      <span class="modal-icon">🔑</span>
+      <h3>Введите Gemini API Key</h3>
+      <div class="modal-input-wrap">
+        <span class="input-icon">🔑</span>
+        <input type="password" id="api-key" placeholder="Gemini API Key" autocomplete="off" />
+      </div>
+      <button class="apikey-btn" id="apikey-save-btn" type="button">OK</button>
+    </div>
+  </div>
   <div class="container">
     <div class="header">
       <span class="app-title"><span class="logo">🕓</span>NOW v14.32</span>
@@ -572,19 +536,10 @@
         <button class="key-btn" id="booking-btn" title="Оформить бронирование">
           <span class="header-icon">💳</span>
         </button>
-        <button class="key-btn" id="show-key-btn" title="API Key">
+      <button class="key-btn" id="show-key-btn" title="API Key">
           <span class="header-icon">🔑</span>
-        </button>
+      </button>
       </div>
-    </div>
-    <div class="apikey-float" id="apikey-float">
-      <div class="apikey-icon">🔑</div>
-      <div class="apikey-title">API Key</div>
-      <div class="apikey-desc">Введите ваш Gemini API ключ для доступа к функциям приложения.</div>
-      <div class="apikey-input-wrap">
-        <input type="password" id="api-key" placeholder="Введите Gemini API Key" autocomplete="off" />
-      </div>
-      <button class="apikey-btn" id="apikey-save-btn" type="button">OK</button>
     </div>
     <div class="user" id="user-info">Loading user info...</div>
     <div class="chatbox" id="chatbox"></div>
@@ -606,19 +561,19 @@
         <div style="margin: 1em 0; width: 100%;">
           <div class="modal-input-wrap">
             <span class="input-icon">💳</span>
-            <input type="text" id="card-number" placeholder="Номер карты: 1234 5678 9012 3456" maxlength="19" />
+          <input type="text" id="card-number" placeholder="Номер карты: 1234 5678 9012 3456" maxlength="19" />
           </div>
           <div class="modal-input-wrap">
             <span class="input-icon">📅</span>
-            <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" />
+          <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" />
           </div>
           <div class="modal-input-wrap">
             <span class="input-icon">🔒</span>
-            <input type="text" id="card-cvv" placeholder="CVV" maxlength="3" />
+          <input type="text" id="card-cvv" placeholder="CVV" maxlength="3" />
           </div>
           <div class="modal-input-wrap">
             <span class="input-icon">👤</span>
-            <input type="text" id="card-name" placeholder="Имя владельца карты" />
+          <input type="text" id="card-name" placeholder="Имя владельца карты" />
           </div>
         </div>
         <button type="button" id="pay-btn"><svg viewBox="0 0 24 24"><path d="M21 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zm-2 0H5v2h14V7zm0 4H5v6h14v-6z"/></svg>Привязать</button>
@@ -627,21 +582,41 @@
   </div>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    // Показ/скрытие поля API-ключа с затемнением
+    // --- Новый модал для API Key ---
     const showKeyBtn = document.getElementById('show-key-btn');
-    const apikeyFloat = document.getElementById('apikey-float');
-    const apikeyBackdrop = document.getElementById('apikey-backdrop');
-    showKeyBtn.onclick = () => {
-      const isActive = apikeyFloat.classList.toggle('active');
-      apikeyBackdrop.classList.toggle('active', isActive);
-      if (isActive) {
-        document.getElementById('api-key').focus();
+    const apikeyModal = document.getElementById('apikey-modal');
+    const apikeySaveBtn = document.getElementById('apikey-save-btn');
+    function openApikeyModal() {
+      apikeyModal.classList.add('active');
+      const apiKeyInput = document.getElementById('api-key');
+      // Подставить сохранённый ключ, если есть
+      const savedKey = localStorage.getItem('gemini_api_key') || '';
+      apiKeyInput.value = savedKey;
+      apiKeyInput.focus();
+    }
+    function closeApikeyModal() {
+      apikeyModal.classList.remove('active');
+    }
+    showKeyBtn.onclick = openApikeyModal;
+    apikeySaveBtn.onclick = () => {
+      const apiKeyInput = document.getElementById('api-key');
+      localStorage.setItem('gemini_api_key', apiKeyInput.value.trim());
+      closeApikeyModal();
+    };
+    // Клик по тёмной подложке закрывает модалку
+    apikeyModal.addEventListener('mousedown', function(e) {
+      if (e.target === apikeyModal) {
+        closeApikeyModal();
       }
-    };
-    apikeyBackdrop.onclick = () => {
-      apikeyFloat.classList.remove('active');
-      apikeyBackdrop.classList.remove('active');
-    };
+    });
+    // Enter на input сохраняет и закрывает
+    document.getElementById('api-key').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        localStorage.setItem('gemini_api_key', this.value.trim());
+        closeApikeyModal();
+        e.preventDefault();
+      }
+    });
 
     // Кнопка "Оформить бронирование" (Привязать карту)
     const bookingBtn = document.getElementById('booking-btn');
@@ -663,6 +638,9 @@
       }
     });
 
+    // Кнопка OK в apikey-float закрывает блок
+    // Удаляю старую логику apikey-float и apikey-modal-backdrop
+
     // Telegram user info
     const tg = window.Telegram.WebApp;
     tg.ready();
@@ -678,7 +656,7 @@
     const chatbox = document.getElementById('chatbox');
     const chatForm = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
-    const apiKeyInput = document.getElementById('api-key');
+    // apiKeyInput теперь инициализируется внутри функций, чтобы всегда брать актуальный value
 
     // Available data files mapping
     const dataFiles = {
@@ -808,7 +786,9 @@
       e.stopPropagation();
 
       const apiKey = document.getElementById('api-key').value.trim();
-      if (!apiKey) {
+      // или из localStorage, если поле пустое
+      const apiKeyFinal = apiKey || localStorage.getItem('gemini_api_key') || '';
+      if (!apiKeyFinal) {
         alert('Пожалуйста, введите ваш Gemini API Key!');
         return;
       }
@@ -825,7 +805,7 @@
         const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
 
         // Gemini file selection request
-        const fileRes = await fetch(GEMINI_ENDPOINT + '?key=' + apiKey, {
+        const fileRes = await fetch(GEMINI_ENDPOINT + '?key=' + apiKeyFinal, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json; charset=utf-8'
@@ -860,7 +840,7 @@
           // Now create the main response with loaded data
           const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n\nWhen the user confirms booking, respond as before.`;
           // Gemini main response request
-          const mainRes = await fetch(GEMINI_ENDPOINT + '?key=' + apiKey, {
+          const mainRes = await fetch(GEMINI_ENDPOINT + '?key=' + apiKeyFinal, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json; charset=utf-8'
