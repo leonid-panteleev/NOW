@@ -10,39 +10,50 @@
       margin: 0;
       padding: 0;
       background: #181c22;
-      color: #f1f1f1;
+      color: #fff;
       font-family: 'Inter', Arial, sans-serif;
       box-sizing: border-box;
+    }
+    *, *:before, *:after {
+      box-sizing: inherit;
     }
     body {
       min-height: 100vh;
       min-width: 100vw;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: hidden;
+      background: #181c22;
     }
     .container {
       width: 100vw;
+      max-width: 100vw;
       height: 100vh;
+      max-height: 100vh;
       display: flex;
       flex-direction: column;
-      background: transparent;
+      background: #181c22;
       box-shadow: none;
       border-radius: 0;
       padding: 0;
+      box-sizing: border-box;
       position: relative;
     }
     .header {
       width: 100vw;
+      max-width: 100vw;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 1.2em 1.2em 0.5em 1.2em;
-      background: transparent;
+      box-sizing: border-box;
+      background: #1a1d21;
       z-index: 1002;
+      border-bottom: 1px solid rgba(126, 207, 255, 0.13);
     }
     .app-title {
       font-size: 1.2em;
       font-weight: 700;
-      color: #7ecfff;
+      color: #fff;
       letter-spacing: 1px;
     }
     .key-btn {
@@ -81,6 +92,7 @@
       max-width: 320px;
       width: 100%;
       overflow: hidden;
+      box-sizing: border-box;
     }
     .apikey-float.active {
       display: block;
@@ -94,29 +106,32 @@
       border-radius: 10px;
       border: 1px solid #333a;
       background: #181c22;
-      color: #f1f1f1;
+      color: #fff;
       font-size: 1em;
       margin-bottom: 0.5em;
       overflow: hidden;
       text-overflow: ellipsis;
+      box-sizing: border-box;
     }
     .apikey-float label {
       font-size: 0.98em;
-      color: #7ecfff;
+      color: #fff;
       margin-bottom: 0.3em;
       display: block;
     }
     .user {
       margin: 0.5em 0 0.5em 1.2em;
       font-size: 1.05em;
-      color: #7ecfff;
+      color: #fff;
       opacity: 0.85;
     }
     .chatbox {
       flex: 1 1 auto;
       width: 100vw;
+      max-width: 100vw;
       overflow-y: auto;
       padding: 1.2em 0.8em 1.2em 0.8em;
+      box-sizing: border-box;
       background: transparent;
       display: flex;
       flex-direction: column;
@@ -132,23 +147,23 @@
       margin-bottom: 0.2em;
       word-break: break-word;
       box-shadow: 0 2px 8px #0002;
-      background: #23272f;
-      color: #f1f1f1;
+      background: #22252a;
+      color: #fff;
       align-self: flex-start;
     }
     .msg.user {
-      background: #1a6cff;
+      background: #23272f;
       color: #fff;
       align-self: flex-end;
       box-shadow: 0 2px 8px #1a6cff33;
     }
     .msg.assistant {
-      background: #23272f;
-      color: #f1f1f1;
+      background: #22252a;
+      color: #fff;
     }
     .booking-card {
       background: #23272f;
-      color: #f1f1f1;
+      color: #fff;
       border-radius: 18px;
       box-shadow: 0 2px 12px #0004;
       margin: 0.7em 0;
@@ -159,68 +174,113 @@
       transition: border 0.2s, box-shadow 0.2s;
     }
     .booking-card.selected {
-      border: 2px solid #7ecfff;
-      box-shadow: 0 0 0 2px #7ecfff33;
+      border: 2px solid #444;
+      box-shadow: 0 0 0 2px #222;
     }
     .booking-btn, .booking-btn.confirm-btn {
-      background: #1a6cff;
+      background: linear-gradient(135deg, #23272f 60%, #181a1f 100%);
       color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 0.6em 1.3em;
-      font-weight: 600;
+      border: 1.5px solid #23272f;
+      border-radius: 50px;
+      padding: 0.7em 2.2em;
+      font-weight: 700;
       cursor: pointer;
       margin: 0.5em 0.2em 0 0;
-      font-size: 1em;
-      transition: background 0.2s;
-      box-shadow: 0 2px 8px #1a6cff22;
+      font-size: 1.13em;
+      transition: box-shadow 0.2s, background 0.2s, border 0.2s;
+      box-shadow: 0 4px 16px #0008, 0 0 0 2px #23272f inset;
+      outline: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      height: 44px;
+      line-height: 1;
     }
     .booking-btn:hover, .booking-btn.confirm-btn:hover {
-      background: #7ecfff;
-      color: #181c22;
+      background: linear-gradient(135deg, #2d323b 60%, #23272f 100%);
+      box-shadow: 0 6px 24px #000b, 0 0 0 2.5px #7ecfff inset;
+      border: 1.5px solid #7ecfff;
+      color: #fff;
     }
     .input-row {
-      position: fixed;
-      left: 0; right: 0; bottom: 0;
       width: 100vw;
+      max-width: 100vw;
       background: transparent;
+      padding: 0 0 1.2em 0;
+      box-sizing: border-box;
       display: flex;
-      gap: 0.5em;
-      padding: 0.7em 1.2em 1.2em 1.2em;
-      z-index: 1001;
+      justify-content: center;
+      align-items: flex-end;
+    }
+    .input-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
       align-items: flex-end;
     }
     .input-row input {
-      flex: 1;
-      padding: 0.9em 1.2em;
-      border-radius: 18px;
-      border: 1px solid #333a;
-      background: #23272f;
-      color: #f1f1f1;
-      font-size: 1.08em;
+      display: none;
+    }
+    .input-row textarea {
+      width: 100%;
+      min-height: 120px;
+      max-height: 160px;
+      height: 140px;
+      padding: 2.2em 4em 0.7em 2em;
+      border-radius: 22px;
+      border: 1.5px solid #333a;
+      background: #24272d;
+      color: #fff;
+      font-size: 1.13em;
       outline: none;
-      margin-right: 0.2em;
-      box-shadow: 0 2px 8px #0002;
+      margin: 0;
+      box-shadow: 0 2px 12px #0003;
+      box-sizing: border-box;
+      transition: border 0.2s;
+      resize: none;
+      vertical-align: top;
+      text-align: left;
+      margin-right: 0.7em;
+    }
+    .input-row textarea:focus {
+      border: 1.5px solid #7ecfff;
     }
     .input-row button {
-      background: #1a6cff;
+      position: absolute;
+      right: 1.1em;
+      bottom: 1.1em;
+      background: linear-gradient(135deg, #23272f 60%, #181a1f 100%);
       color: #fff;
-      border: none;
+      border: 1.5px solid #23272f;
       border-radius: 50%;
-      width: 48px;
-      height: 48px;
-      font-size: 1.3em;
+      width: 44px;
+      height: 44px;
+      font-size: 1.25em;
       font-weight: 700;
       cursor: pointer;
-      transition: background 0.2s;
-      box-shadow: 0 2px 8px #1a6cff33;
+      transition: box-shadow 0.2s, background 0.2s, border 0.2s;
+      box-shadow: 0 4px 16px #0008, 0 0 0 2px #23272f inset;
       display: flex;
       align-items: center;
       justify-content: center;
+      z-index: 2;
+      margin: 0;
+      outline: none;
     }
-    .input-row button:hover {
-      background: #7ecfff;
-      color: #181c22;
+    .input-row button:hover, .input-row button:focus {
+      background: linear-gradient(135deg, #2d323b 60%, #23272f 100%);
+      box-shadow: 0 6px 24px #000b, 0 0 0 2.5px #7ecfff inset;
+      border: 1.5px solid #7ecfff;
+      color: #fff;
+    }
+    .input-row button svg {
+      width: 1.3em;
+      height: 1.3em;
+      fill: #fff;
     }
     .modal {
       display: none;
@@ -228,9 +288,9 @@
       z-index: 2000;
       left: 0; top: 0; width: 100vw; height: 100vh;
       background: rgba(24,28,34,0.85);
-      display: flex;
       align-items: center;
       justify-content: center;
+      box-sizing: border-box;
     }
     .modal.active {
       display: flex;
@@ -240,14 +300,16 @@
       background: #23272f;
       border-radius: 18px;
       padding: 2em 1.5em 1.5em 1.5em;
-      box-shadow: 0 4px 24px #0008;
-      min-width: 280px;
-      max-width: 95vw;
+      min-width: 220px;
+      max-width: 340px;
+      width: 100%;
       margin: 0 auto;
       position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
+      box-sizing: border-box;
+      color: #fff;
     }
     .modal-close {
       position: absolute;
@@ -257,28 +319,59 @@
       cursor: pointer;
       z-index: 10;
     }
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(24,28,34,0.95);
+      z-index: 1000;
+    }
+    .modal-backdrop.active {
+      display: block;
+      animation: fadeIn 0.2s;
+    }
     @media (max-width: 600px) {
       .chatbox, .msg, .booking-card {
         font-size: 0.98em;
         padding-left: 0.5em;
         padding-right: 0.5em;
+        box-sizing: border-box;
       }
       .input-row {
         padding-left: 0.5em;
         padding-right: 0.5em;
+        box-sizing: border-box;
       }
       .apikey-float {
         right: 8px;
-        min-width: 180px;
+        min-width: 0;
+        width: 95vw;
+        max-width: 220px;
+        box-sizing: border-box;
+      }
+      .modal-content {
+        min-width: 90vw;
+        max-width: 95vw;
+        width: 90vw;
+        padding: 1.2em 0.5em 1em 0.5em;
+        box-sizing: border-box;
       }
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: none; }
     }
+    .booking-btn svg, .booking-btn.confirm-btn svg, #pay-btn svg {
+      width: 1.2em;
+      height: 1.2em;
+      fill: #fff;
+      margin-right: 0.5em;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body>
+  <div class="modal-backdrop" id="apikey-backdrop"></div>
   <div class="container">
     <div class="header">
       <span class="app-title">NOW v14.32</span>
@@ -298,8 +391,12 @@
     <div class="user" id="user-info">Loading user info...</div>
     <div class="chatbox" id="chatbox"></div>
     <form id="chat-form" class="input-row" autocomplete="off" onsubmit="return false;">
-      <input type="text" id="user-input" placeholder="Например: забронируй столик в ресторане на вечер" required />
-      <button type="button" id="send-btn" title="Send">&#10148;</button>
+      <div class="input-wrapper">
+        <textarea id="user-input" placeholder="Например: забронируй столик в ресторане на вечер" required rows="2"></textarea>
+        <button type="button" id="send-btn" title="Send">
+          <svg viewBox="0 0 24 24"><path d="M4 12l16-7-7 16-2-7-7-2z"/></svg>
+        </button>
+      </div>
     </form>
     <!-- Payment Modal -->
     <div class="modal" id="payment-modal">
@@ -313,23 +410,29 @@
           <input type="text" id="card-cvv" placeholder="CVV" maxlength="3" />
           <input type="text" id="card-name" placeholder="Имя владельца карты" />
         </div>
-        <button type="button" id="pay-btn" style="width: 100%;">💳 Привязать</button>
+        <button type="button" id="pay-btn" style="width: 100%;"><svg viewBox="0 0 24 24"><path d="M21 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zm-2 0H5v2h14V7zm0 4H5v6h14v-6z"/></svg>Привязать</button>
       </div>
     </div>
   </div>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    // Показ/скрытие поля API-ключа
+    // Показ/скрытие поля API-ключа с затемнением
     const showKeyBtn = document.getElementById('show-key-btn');
     const apikeyFloat = document.getElementById('apikey-float');
+    const apikeyBackdrop = document.getElementById('apikey-backdrop');
     showKeyBtn.onclick = () => {
-      apikeyFloat.classList.toggle('active');
-      if (apikeyFloat.classList.contains('active')) {
+      const isActive = apikeyFloat.classList.toggle('active');
+      apikeyBackdrop.classList.toggle('active', isActive);
+      if (isActive) {
         document.getElementById('api-key').focus();
       }
     };
+    apikeyBackdrop.onclick = () => {
+      apikeyFloat.classList.remove('active');
+      apikeyBackdrop.classList.remove('active');
+    };
 
-    // Кнопка "Оформить бронирование"
+    // Кнопка "Оформить бронирование" (Привязать карту)
     const bookingBtn = document.getElementById('booking-btn');
     const paymentModal = document.getElementById('payment-modal');
     bookingBtn.onclick = () => {
@@ -338,6 +441,16 @@
     function closePaymentModal() {
       paymentModal.classList.remove('active');
     }
+    // Скрыть модалку при старте (гарантированно)
+    window.addEventListener('DOMContentLoaded', () => {
+      paymentModal.classList.remove('active');
+    });
+    // Клик по тёмной подложке закрывает модалку
+    paymentModal.addEventListener('mousedown', function(e) {
+      if (e.target === paymentModal) {
+        closePaymentModal();
+      }
+    });
 
     // Telegram user info
     const tg = window.Telegram.WebApp;
@@ -457,7 +570,7 @@
         // Выбрать
         const selectBtn = document.createElement('button');
         selectBtn.className = 'booking-btn';
-        selectBtn.textContent = 'Выбрать';
+        selectBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l7.1-7.1 1.4 1.4z"/></svg>Выбрать';
         selectBtn.onclick = () => {
           document.querySelectorAll('.booking-card.selected').forEach(c => c.classList.remove('selected'));
           card.classList.add('selected');
@@ -471,7 +584,7 @@
         confirmBtn.className = 'booking-btn confirm-btn';
         confirmBtn.style.background = '#28a745';
         confirmBtn.style.display = 'none';
-        confirmBtn.textContent = `💳 Забронировать${item.price_range ? ' за ' + item.price_range + ' ' + (item.currency || 'RUB') : ''}`;
+        confirmBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zm0-13H5V6h14v1z"/></svg>Забронировать${item.price_range ? ' за ' + item.price_range + ' ' + (item.currency || 'RUB') : ''}`;
         confirmBtn.onclick = () => showPaymentForm(item);
         card.appendChild(confirmBtn);
         document.getElementById('chatbox').appendChild(card);
