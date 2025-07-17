@@ -12,7 +12,8 @@
       "currency": "RUB",
       "description": "Профессиональная свадебная фотография, портреты",
       "contact": "+7 (495) 123-45-67",
-      "rating": 4.8
+      "rating": 4.8,
+      "hash": "cd26fe76d3e5"
     },
     {
       "id": "mp2",
@@ -24,7 +25,8 @@
       "currency": "RUB",
       "description": "Подготовка к ЕГЭ, олимпиадам, университет",
       "contact": "+7 (495) 234-56-78",
-      "rating": 4.9
+      "rating": 4.9,
+      "hash": "aab55aed2643"
     },
     {
       "id": "mp3",
@@ -36,7 +38,8 @@
       "currency": "RUB",
       "description": "Дизайн квартир, офисов, ремонт под ключ",
       "contact": "+7 (495) 345-67-89",
-      "rating": 4.7
+      "rating": 4.7,
+      "hash": "d13582a9d87f"
     }
   ]
-} 
+}

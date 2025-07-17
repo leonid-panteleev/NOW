@@ -12,7 +12,8 @@
       "available_seats": 45,
       "price_range": "1500-3000",
       "currency": "RUB",
-      "description": "Живая музыка, бар, танцпол"
+      "description": "Живая музыка, бар, танцпол",
+      "hash": "711dc7e4f70c"
     },
     {
       "id": "m2",
@@ -24,7 +25,8 @@
       "available_seats": 12,
       "price_range": "2000-5000",
       "currency": "RUB",
-      "description": "Морская кухня, вид на реку"
+      "description": "Морская кухня, вид на реку",
+      "hash": "5e710f83c99c"
     },
     {
       "id": "m3",
@@ -36,7 +38,8 @@
       "available_seats": 78,
       "price_range": "400-800",
       "currency": "RUB",
-      "description": "Новый блокбастер, 3D"
+      "description": "Новый блокбастер, 3D",
+      "hash": "c2bf2714d395"
     }
   ]
-} 
+}

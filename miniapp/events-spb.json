@@ -12,7 +12,8 @@
       "available_seats": 25,
       "price_range": "3000-8000",
       "currency": "RUB",
-      "description": "Классическая музыка, оркестр"
+      "description": "Классическая музыка, оркестр",
+      "hash": "cd625e1a18cf"
     },
     {
       "id": "sp2",
@@ -24,7 +25,8 @@
       "available_seats": 8,
       "price_range": "2500-6000",
       "currency": "RUB",
-      "description": "Русская кухня, вид на Неву"
+      "description": "Русская кухня, вид на Неву",
+      "hash": "f84269602ebf"
     },
     {
       "id": "sp3",
@@ -36,7 +38,8 @@
       "available_seats": 45,
       "price_range": "500-900",
       "currency": "RUB",
-      "description": "Артхаус, историческое здание"
+      "description": "Артхаус, историческое здание",
+      "hash": "794ff643386e"
     }
   ]
-} 
+}

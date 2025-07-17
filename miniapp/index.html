@@ -35,7 +35,7 @@
 </head>
 <body>
   <div class="container"> 
-    <h1>NOW v13.42</h1>
+    <h1>NOW v14.09</h1>
     <div class="user" id="user-info">Loading user info...</div>
     <div class="apikey">
       <input type="password" id="api-key" placeholder="Введите Gemini API Key" autocomplete="off" style="width:90%;margin-bottom:1em;" />
@@ -235,7 +235,7 @@
           }
           chatbox.removeChild(chatbox.lastChild);
           // Now create the main response with loaded data
-          const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: When a user confirms they want to book something (says \"да\", \"хочу\", \"бронирую\", \"выбираю\", \"подтверждаю\", etc.), you MUST respond with:\n1. A confirmation message\n2. The exact item ID from the data (e.g., \"m1\", \"sp2\", \"mp1\", etc.)\n3. Start your response with \"BOOKING_CONFIRMED:\" followed by the item ID\n\nExample: \"BOOKING_CONFIRMED:m1 - Отлично! Бронирую для вас концерт группы 'Время'...\"\n\nProvide detailed, helpful responses based on the available data. Include prices, contact information, and relevant details.`;
+          const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n\nWhen the user confirms booking, respond as before.`;
           // Gemini main response request
           const mainRes = await fetch(GEMINI_ENDPOINT + '?key=' + apiKey, {
             method: 'POST',
@@ -256,7 +256,7 @@
             messages.push({role: 'user', content});
             messages.push({role: 'assistant', content: reply});
             if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
-              const mentionedItems = filterMentionedItems(currentData.data, reply);
+              const mentionedItems = filterMentionedItemsByHash(currentData.data, reply);
               let comment = extractGptComment(reply, mentionedItems);
               if (comment) {
                 appendMessage('assistant', comment, null);
@@ -410,14 +410,31 @@
 
     // Добавляю функцию для фильтрации упомянутых Gemini вариантов
     function filterMentionedItems(items, replyText) {
-      // Считаем, что элемент упомянут, если его name или id встречается в тексте ответа (без учёта регистра)
-      const lowerReply = replyText.toLowerCase();
+      // Считаем, что элемент упомянут, если его name или id или ключевое слово из name встречается в тексте ответа (без учёта регистра, без кавычек)
+      const lowerReply = replyText.toLowerCase().replace(/["'«»]/g, '');
       return items.filter(item => {
         if (!item.name && !item.id) return false;
-        const nameMatch = item.name && lowerReply.includes(item.name.toLowerCase());
+        // Удаляем кавычки и лишние пробелы из name
+        const cleanName = item.name ? item.name.toLowerCase().replace(/["'«»]/g, '').replace(/\s+/g, ' ').trim() : '';
         const idMatch = item.id && lowerReply.includes(item.id.toLowerCase());
-        return nameMatch || idMatch;
+        // Частичное совпадение по ключевым словам из name (например, "время", "концерт группы")
+        let keywordMatch = false;
+        if (cleanName) {
+          // Берём все слова длиннее 3 символов
+          const keywords = cleanName.split(' ').filter(w => w.length > 3);
+          keywordMatch = keywords.some(word => lowerReply.includes(word));
+        }
+        // Также ищем точное совпадение всей name
+        const nameMatch = cleanName && lowerReply.includes(cleanName);
+        return nameMatch || idMatch || keywordMatch;
       });
+    }
+
+    // Фильтрация карточек по hash из ответа GPT
+    function filterMentionedItemsByHash(items, replyText) {
+      // Найти все hash: <hash> в ответе
+      const hashes = Array.from(replyText.matchAll(/hash:\s*([a-fA-F0-9]{8,})/g)).map(m => m[1]);
+      return items.filter(item => hashes.includes(item.hash));
     }
   </script>
 </body>
