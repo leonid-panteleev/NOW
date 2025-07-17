@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Telegram Mini App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap&subset=cyrillic" rel="stylesheet">
   <style>
     html, body {
       height: 100%;
@@ -11,7 +12,7 @@
       padding: 0;
       background: #181c22;
       color: #fff;
-      font-family: 'Inter', Arial, sans-serif;
+      font-family: 'Manrope', 'Inter', Arial, sans-serif;
       box-sizing: border-box;
     }
     *, *:before, *:after {
@@ -44,17 +45,41 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 1.2em 1.2em 0.5em 1.2em;
+      padding: 1.5em 2em 1em 2em;
+      min-height: 72px;
       box-sizing: border-box;
       background: #1a1d21;
       z-index: 1002;
-      border-bottom: 1px solid rgba(126, 207, 255, 0.13);
+      border-bottom: 1.5px solid #23272f;
+      box-shadow: 0 2px 16px #0004;
+      position: relative;
     }
     .app-title {
-      font-size: 1.2em;
+      font-size: 1.45em;
       font-weight: 700;
       color: #fff;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      text-shadow: 0 2px 8px #0006;
+      user-select: none;
+    }
+    .app-title .logo {
+      font-size: 1.25em;
+      margin-right: 0.3em;
+      filter: drop-shadow(0 2px 4px #0008);
+    }
+    .header > div {
+      display: flex; gap: 0.7em; align-items: center;
+      margin-left: 1.2em;
+    }
+    .header-icon {
+      font-size: 1.35em;
+      filter: drop-shadow(0 2px 4px #0008);
+      vertical-align: middle;
+      pointer-events: none;
+      user-select: none;
     }
     .key-btn {
       width: 44px;
@@ -81,22 +106,103 @@
     .apikey-float {
       display: none;
       position: fixed;
-      top: 70px;
+      top: 92px;
       right: 24px;
       z-index: 1001;
       background: #23272f;
-      padding: 1.2em 1.2em 1em 1.2em;
-      border-radius: 18px;
-      box-shadow: 0 4px 24px #0008;
-      min-width: 180px;
-      max-width: 320px;
+      padding: 2.7em 2.2em 2.2em 2.2em;
+      border-radius: 22px;
+      border: 1.5px solid #23272f;
+      box-shadow: 0 10px 36px #000c, 0 0 0 2px #23272f inset;
+      animation: fadeIn 0.25s;
+      min-width: 270px;
+      max-width: 360px;
       width: 100%;
-      overflow: hidden;
-      box-sizing: border-box;
+      overflow: visible;
+      position: fixed;
+    }
+    .apikey-float::before {
+      content: '';
+      display: block;
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: 22px 22px 0 0;
+      background: #23272f;
+      opacity: 0.18;
     }
     .apikey-float.active {
       display: block;
       animation: fadeIn 0.2s;
+    }
+    .apikey-float .apikey-icon {
+      font-size: 2.2em;
+      margin-bottom: 0.2em;
+      filter: drop-shadow(0 2px 8px #0008);
+      user-select: none;
+      display: flex;
+      justify-content: center;
+      margin-top: -0.5em;
+    }
+    .apikey-float .apikey-title {
+      font-size: 1.22em;
+      font-weight: 700;
+      margin: 0 0 0.5em 0;
+      letter-spacing: 0.7px;
+      text-align: center;
+      color: #fff;
+      text-shadow: 0 2px 8px #0006;
+    }
+    .apikey-float .apikey-desc {
+      font-size: 1em;
+      color: #fff;
+      margin-bottom: 1.3em;
+      text-align: center;
+      opacity: 0.85;
+    }
+    .apikey-float .apikey-input-wrap {
+      position: relative;
+      width: 100%;
+      margin-bottom: 1.3em;
+    }
+    .apikey-float input {
+      width: 100%;
+      padding: 1.1em 1.2em 1.1em 1.2em;
+      border-radius: 13px;
+      border: 1.5px solid #333a;
+      background: #181c22;
+      color: #fff;
+      font-size: 1.09em;
+      margin-bottom: 0;
+      box-shadow: 0 2px 8px #0002;
+      box-sizing: border-box;
+      outline: none;
+      transition: border 0.2s;
+      position: relative;
+    }
+    .apikey-float input:focus {
+      border: 1.5px solid #7ecfff;
+    }
+    .apikey-float .apikey-btn {
+      width: 100%;
+      display: block;
+      background: #181c22;
+      color: #fff;
+      border: 1.5px solid #23272f;
+      border-radius: 50px;
+      font-size: 1.09em;
+      font-weight: 700;
+      padding: 1em 0;
+      box-shadow: 0 4px 16px #0008, 0 0 0 2px #23272f inset;
+      transition: box-shadow 0.2s, background 0.2s, color 0.2s;
+      cursor: pointer;
+      margin-top: 0.3em;
+      letter-spacing: 0.5px;
+    }
+    .apikey-float .apikey-btn:hover, .apikey-float .apikey-btn:focus {
+      background: #23272f;
+      color: #fff;
+      box-shadow: 0 6px 24px #000b, 0 0 0 2.5px #23272f inset;
     }
     .apikey-float input {
       width: 100%;
@@ -178,7 +284,7 @@
       box-shadow: 0 0 0 2px #222;
     }
     .booking-btn, .booking-btn.confirm-btn {
-      background: linear-gradient(135deg, #23272f 60%, #181a1f 100%);
+      background: #181a1f;
       color: #fff;
       border: 1.5px solid #23272f;
       border-radius: 50px;
@@ -199,9 +305,9 @@
       line-height: 1;
     }
     .booking-btn:hover, .booking-btn.confirm-btn:hover {
-      background: linear-gradient(135deg, #2d323b 60%, #23272f 100%);
-      box-shadow: 0 6px 24px #000b, 0 0 0 2.5px #7ecfff inset;
-      border: 1.5px solid #7ecfff;
+      background: #23272f;
+      box-shadow: 0 6px 24px #000b, 0 0 0 2.5px #23272f inset;
+      border: 1.5px solid #23272f;
       color: #fff;
     }
     .input-row {
@@ -253,7 +359,7 @@
       position: absolute;
       right: 1.1em;
       bottom: 1.1em;
-      background: linear-gradient(135deg, #23272f 60%, #181a1f 100%);
+      background: #181a1f;
       color: #fff;
       border: 1.5px solid #23272f;
       border-radius: 50%;
@@ -272,9 +378,9 @@
       outline: none;
     }
     .input-row button:hover, .input-row button:focus {
-      background: linear-gradient(135deg, #2d323b 60%, #23272f 100%);
-      box-shadow: 0 6px 24px #000b, 0 0 0 2.5px #7ecfff inset;
-      border: 1.5px solid #7ecfff;
+      background: #23272f;
+      box-shadow: 0 6px 24px #000b, 0 0 0 2.5px #23272f inset;
+      border: 1.5px solid #23272f;
       color: #fff;
     }
     .input-row button svg {
@@ -299,7 +405,7 @@
     .modal-content {
       background: #23272f;
       border-radius: 18px;
-      padding: 2em 1.5em 1.5em 1.5em;
+      padding: 2.5em 2em 2em 2em;
       min-width: 220px;
       max-width: 340px;
       width: 100%;
@@ -310,6 +416,93 @@
       align-items: center;
       box-sizing: border-box;
       color: #fff;
+      border: 1.5px solid #23272f;
+      box-shadow: 0 8px 32px #000b, 0 0 0 2px #23272f inset;
+      animation: fadeIn 0.25s;
+    }
+    .modal-content .modal-icon {
+      font-size: 2.5em;
+      margin-bottom: 0.3em;
+      filter: drop-shadow(0 2px 8px #0008);
+      user-select: none;
+    }
+    .modal-content h3 {
+      font-size: 1.35em;
+      font-weight: 700;
+      margin: 0 0 1.2em 0;
+      letter-spacing: 0.5px;
+      text-align: center;
+      color: #fff;
+    }
+    .modal-content input[type="text"] {
+      width: 100%;
+      padding: 1em 1.2em 1em 2.5em;
+      border-radius: 12px;
+      border: 1.5px solid #333a;
+      background: #181c22;
+      color: #fff;
+      font-size: 1.08em;
+      margin-bottom: 0.7em;
+      box-shadow: 0 2px 8px #0002;
+      box-sizing: border-box;
+      outline: none;
+      transition: border 0.2s;
+      position: relative;
+    }
+    .modal-content input[type="text"]:focus {
+      border: 1.5px solid #7ecfff;
+    }
+    .modal-content .input-icon {
+      position: absolute;
+      left: 1.1em;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1em;
+      color: #fff;
+      pointer-events: none;
+    }
+    .modal-content .modal-input-wrap {
+      position: relative;
+      width: 100%;
+      margin-bottom: 0.7em;
+    }
+    .modal-content input[type="text"]:focus {
+      border: 1.5px solid #7ecfff;
+    }
+    .modal-content .modal-input-wrap {
+      position: relative;
+      width: 100%;
+      margin-bottom: 0.7em;
+    }
+    #pay-btn {
+      margin-top: 0.7em;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #181a1f;
+      color: #fff;
+      border: 1.5px solid #23272f;
+      border-radius: 50px;
+      font-size: 1.13em;
+      font-weight: 700;
+      padding: 0.9em 0;
+      box-shadow: 0 4px 16px #0008, 0 0 0 2px #23272f inset;
+      transition: box-shadow 0.2s, background 0.2s, border 0.2s;
+      cursor: pointer;
+    }
+    #pay-btn:hover, #pay-btn:focus {
+      background: #23272f;
+      box-shadow: 0 6px 24px #000b, 0 0 0 2.5px #23272f inset;
+      border: 1.5px solid #23272f;
+      color: #fff;
+    }
+    #pay-btn svg {
+      width: 1.3em;
+      height: 1.3em;
+      fill: #fff;
+      margin-right: 0.6em;
+      vertical-align: middle;
     }
     .modal-close {
       position: absolute;
@@ -374,19 +567,24 @@
   <div class="modal-backdrop" id="apikey-backdrop"></div>
   <div class="container">
     <div class="header">
-      <span class="app-title">NOW v14.32</span>
+      <span class="app-title"><span class="logo">🕓</span>NOW v14.32</span>
       <div style="display: flex; gap: 0.7em; align-items: center;">
         <button class="key-btn" id="booking-btn" title="Оформить бронирование">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#23272f"/><path d="M12 7v5l4 2" stroke="#7ecfff" stroke-width="2" fill="none"/></svg>
+          <span class="header-icon">💳</span>
         </button>
         <button class="key-btn" id="show-key-btn" title="API Key">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#23272f"/><path d="M17.7 13.35a3.5 3.5 0 1 0-1.41 1.41l2.13 2.13a1 1 0 0 0 1.41-1.41l-2.13-2.13zm-5.2.65a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" fill="#7ecfff"/></svg>
+          <span class="header-icon">🔑</span>
         </button>
       </div>
     </div>
     <div class="apikey-float" id="apikey-float">
-      <label for="api-key">API Key</label>
-      <input type="password" id="api-key" placeholder="Введите Gemini API Key" autocomplete="off" />
+      <div class="apikey-icon">🔑</div>
+      <div class="apikey-title">API Key</div>
+      <div class="apikey-desc">Введите ваш Gemini API ключ для доступа к функциям приложения.</div>
+      <div class="apikey-input-wrap">
+        <input type="password" id="api-key" placeholder="Введите Gemini API Key" autocomplete="off" />
+      </div>
+      <button class="apikey-btn" id="apikey-save-btn" type="button">OK</button>
     </div>
     <div class="user" id="user-info">Loading user info...</div>
     <div class="chatbox" id="chatbox"></div>
@@ -402,15 +600,28 @@
     <div class="modal" id="payment-modal">
       <div class="modal-content">
         <span class="modal-close" onclick="closePaymentModal()">&times;</span>
-        <h3>💳 Привязать карту</h3>
+        <span class="modal-icon">💳</span>
+        <h3>Привязать карту</h3>
         <div id="modal-booking-details"></div>
-        <div style="margin: 1em 0;">
-          <input type="text" id="card-number" placeholder="Номер карты: 1234 5678 9012 3456" maxlength="19" />
-          <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" />
-          <input type="text" id="card-cvv" placeholder="CVV" maxlength="3" />
-          <input type="text" id="card-name" placeholder="Имя владельца карты" />
+        <div style="margin: 1em 0; width: 100%;">
+          <div class="modal-input-wrap">
+            <span class="input-icon">💳</span>
+            <input type="text" id="card-number" placeholder="Номер карты: 1234 5678 9012 3456" maxlength="19" />
+          </div>
+          <div class="modal-input-wrap">
+            <span class="input-icon">📅</span>
+            <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" />
+          </div>
+          <div class="modal-input-wrap">
+            <span class="input-icon">🔒</span>
+            <input type="text" id="card-cvv" placeholder="CVV" maxlength="3" />
+          </div>
+          <div class="modal-input-wrap">
+            <span class="input-icon">👤</span>
+            <input type="text" id="card-name" placeholder="Имя владельца карты" />
+          </div>
         </div>
-        <button type="button" id="pay-btn" style="width: 100%;"><svg viewBox="0 0 24 24"><path d="M21 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zm-2 0H5v2h14V7zm0 4H5v6h14v-6z"/></svg>Привязать</button>
+        <button type="button" id="pay-btn"><svg viewBox="0 0 24 24"><path d="M21 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zm-2 0H5v2h14V7zm0 4H5v6h14v-6z"/></svg>Привязать</button>
       </div>
     </div>
   </div>
