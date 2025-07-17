@@ -77,8 +77,10 @@
       padding: 1.2em 1.2em 1em 1.2em;
       border-radius: 18px;
       box-shadow: 0 4px 24px #0008;
-      min-width: 260px;
-      max-width: 90vw;
+      min-width: 180px;
+      max-width: 320px;
+      width: 100%;
+      overflow: hidden;
     }
     .apikey-float.active {
       display: block;
@@ -86,6 +88,8 @@
     }
     .apikey-float input {
       width: 100%;
+      min-width: 0;
+      max-width: 220px;
       padding: 0.7em 1em;
       border-radius: 10px;
       border: 1px solid #333a;
@@ -93,6 +97,8 @@
       color: #f1f1f1;
       font-size: 1em;
       margin-bottom: 0.5em;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .apikey-float label {
       font-size: 0.98em;
@@ -222,6 +228,7 @@
       z-index: 2000;
       left: 0; top: 0; width: 100vw; height: 100vh;
       background: rgba(24,28,34,0.85);
+      display: flex;
       align-items: center;
       justify-content: center;
     }
@@ -234,9 +241,13 @@
       border-radius: 18px;
       padding: 2em 1.5em 1.5em 1.5em;
       box-shadow: 0 4px 24px #0008;
-      min-width: 320px;
+      min-width: 280px;
       max-width: 95vw;
+      margin: 0 auto;
       position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     .modal-close {
       position: absolute;
@@ -270,7 +281,7 @@
 <body>
   <div class="container">
     <div class="header">
-      <span class="app-title">NOW v14.29</span>
+      <span class="app-title">NOW v14.32</span>
       <div style="display: flex; gap: 0.7em; align-items: center;">
         <button class="key-btn" id="booking-btn" title="Оформить бронирование">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#23272f"/><path d="M12 7v5l4 2" stroke="#7ecfff" stroke-width="2" fill="none"/></svg>
@@ -294,7 +305,7 @@
     <div class="modal" id="payment-modal">
       <div class="modal-content">
         <span class="modal-close" onclick="closePaymentModal()">&times;</span>
-        <h3>💳 Оформление бронирования</h3>
+        <h3>💳 Привязать карту</h3>
         <div id="modal-booking-details"></div>
         <div style="margin: 1em 0;">
           <input type="text" id="card-number" placeholder="Номер карты: 1234 5678 9012 3456" maxlength="19" />
@@ -302,7 +313,7 @@
           <input type="text" id="card-cvv" placeholder="CVV" maxlength="3" />
           <input type="text" id="card-name" placeholder="Имя владельца карты" />
         </div>
-        <button type="button" id="pay-btn" style="width: 100%;">💳 Оплатить</button>
+        <button type="button" id="pay-btn" style="width: 100%;">💳 Привязать</button>
       </div>
     </div>
   </div>
