@@ -35,7 +35,7 @@
 </head>
 <body>
   <div class="container"> 
-    <h1>NOW v12.50</h1>
+    <h1>NOW v13.30</h1>
     <div class="user" id="user-info">Loading user info...</div>
     <div class="apikey">
       <input type="password" id="api-key" placeholder="Введите Gemini API Key" autocomplete="off" style="width:90%;margin-bottom:1em;" />
@@ -230,10 +230,13 @@
           console.log('Gemini main response:', mainData);
           if (mainData.candidates && mainData.candidates[0] && mainData.candidates[0].content && mainData.candidates[0].content.parts && mainData.candidates[0].content.parts[0]) {
             const reply = mainData.candidates[0].content.parts[0].text.trim();
-            appendMessage('assistant', reply, null);
+            // Новый режим: показываем только карточки, а текст — только если это комментарий GPT (например, объяснение выбора)
             messages.push({role: 'user', content});
             messages.push({role: 'assistant', content: reply});
-            // Показываем карточки только для упомянутых Gemini вариантов
+            let comment = extractGptComment(reply, currentData.data);
+            if (comment) {
+              appendMessage('assistant', comment, null);
+            }
             if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
               const mentionedItems = filterMentionedItems(currentData.data, reply);
               if (mentionedItems.length > 0) {
