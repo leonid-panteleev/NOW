@@ -628,7 +628,7 @@
           <option value="gemini">Gemini</option>
           <option value="openai">ChatGPT (OpenAI)</option>
           <option value="deepseek">DeepSeek</option>
-          <option value="groq">Groq (Llama-3)</option>
+          <option value="groq">Groq</option>
           <option value="mistral">Mistral (Large)</option>
           <option value="other">Другое</option>
         </select>
@@ -1214,7 +1214,7 @@
               'Authorization': 'Bearer ' + apiKey
             },
             body: JSON.stringify({
-              model: 'llama-3-70b-8192',
+              model: apiModel,
               messages: [
                 { role: 'user', content: fileSelectionPrompt },
                 { role: 'user', content: content }
@@ -1414,7 +1414,7 @@
                 'Authorization': 'Bearer ' + apiKey
               },
               body: JSON.stringify({
-                model: 'llama-3-70b-8192',
+                model: apiModel,
                 messages: [
                   { role: 'system', content: systemPrompt },
                   { role: 'user', content: content }
