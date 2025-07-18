@@ -1146,8 +1146,137 @@
 
       appendMessage('user', content);
       userInput.value = '';
-      appendMessage('assistant', 'Определяю нужные данные...');
 
+      if (apiProvider === 'openai') {
+        // --- OpenAI отдельная обработка с dotsDiv и троттлингом ---
+        appendMessage('assistant', 'Определяю нужные данные...');
+        try {
+          // 1. Выбор файла
+          const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., \"events-moscow\") without .json extension.`;
+          const fileRes = await throttledOpenAIFetchWithDots('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + apiKey,
+            },
+            body: JSON.stringify({
+              model: apiModel,
+              messages: [
+                { role: 'system', content: fileSelectionPrompt },
+                { role: 'user', content: content }
+              ],
+              max_tokens: 20,
+              temperature: 0
+            })
+          }, false);
+          const fileData = await fileRes.json();
+          let selectedFile = '';
+          if (fileData.choices && fileData.choices[0] && fileData.choices[0].message && fileData.choices[0].message.content) {
+            selectedFile = fileData.choices[0].message.content.trim().toLowerCase();
+          }
+          // 2. Загрузка данных
+          if (dataFiles[selectedFile]) {
+            try {
+              const dataRes = await fetch(dataFiles[selectedFile]);
+              const text = await dataRes.text();
+              if (!dataRes.ok) {
+                const devtoolsMsg = `index.html:921 GET ${dataRes.url} ${dataRes.status} (${dataRes.statusText})`;
+                console.error(devtoolsMsg + '\n' + (new Error().stack || '') + '\n' + text);
+                throw new Error(`HTTP ${dataRes.status}: ${dataRes.statusText}`);
+              }
+              let loadedData;
+              try {
+                loadedData = JSON.parse(text);
+              } catch (jsonErr) {
+                console.error('Ошибка парсинга JSON при загрузке данных:', jsonErr, text);
+                throw jsonErr;
+              }
+              currentData = loadedData;
+              dataLoaded = true;
+            } catch (dataError) {
+              console.error('Ошибка загрузки данных:', dataError);
+              chatbox.removeChild(chatbox.lastChild);
+              appendMessage('assistant', 'Ошибка: ' + dataError.message);
+              return;
+            }
+            chatbox.removeChild(chatbox.lastChild);
+            // 3. dotsDiv и основной ответ
+            let dotsDiv = document.createElement('div');
+            dotsDiv.className = 'msg assistant';
+            dotsDiv.textContent = '...';
+            chatbox.appendChild(dotsDiv);
+            chatbox.scrollTop = chatbox.scrollHeight;
+            const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n\nWhen the user confirms booking, respond as before.`;
+            let reply = '';
+            const mainRes = await throttledOpenAIFetchWithDots('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey,
+              },
+              body: JSON.stringify({
+                model: apiModel,
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: content }
+                ],
+                max_tokens: 512,
+                temperature: 0.7
+              })
+            }, true);
+            const text = await mainRes.text();
+            if (!mainRes.ok) {
+              const devtoolsMsg = `index.html:1047 POST ${mainRes.url} ${mainRes.status} (${mainRes.statusText})`;
+              console.error(devtoolsMsg + '\n' + (new Error().stack || '') + '\n' + text);
+            }
+            let mainData;
+            try {
+              mainData = JSON.parse(text);
+            } catch (jsonErr) {
+              if (dotsDiv && dotsDiv.parentNode) dotsDiv.textContent = 'Ошибка: ' + jsonErr.message;
+              return;
+            }
+            // Удалить dotsDiv и временное сообщение
+            if (dotsDiv && dotsDiv.parentNode) dotsDiv.parentNode.removeChild(dotsDiv);
+            const lastMsg = chatbox.lastElementChild;
+            if (lastMsg && lastMsg.classList.contains('assistant') && lastMsg.textContent.trim() === 'Определяю нужные данные...') {
+              chatbox.removeChild(lastMsg);
+            }
+            if (mainData.choices && mainData.choices[0] && mainData.choices[0].message && mainData.choices[0].message.content) {
+              reply = mainData.choices[0].message.content.trim();
+              let mentionedItems = [];
+              if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
+                mentionedItems = filterMentionedItemsByHash(currentData.data, reply);
+                let comment = extractGptComment(reply, mentionedItems);
+                if (comment) {
+                  appendMessage('assistant', comment, null);
+                }
+                if (mentionedItems.length > 0) {
+                  renderBookingCards(mentionedItems);
+                }
+                if (!comment && mentionedItems.length === 0) {
+                  appendMessage('assistant', reply, null);
+                }
+              } else {
+                appendMessage('assistant', reply, null);
+              }
+            } else {
+              appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
+              return;
+            }
+          } else {
+            chatbox.removeChild(chatbox.lastChild);
+            appendMessage('assistant', `Не удалось определить нужные данные (${selectedFile}). Попробуйте переформулировать запрос.`);
+          }
+        } catch (err) {
+          chatbox.removeChild(chatbox.lastChild);
+          appendMessage('assistant', 'Ошибка: ' + err.message);
+        }
+        return;
+      }
+
+      // --- Все остальные провайдеры ---
+      appendMessage('assistant', 'Определяю нужные данные...');
       try {
         // --- Определяем нужный файл через выбранное API ---
         let selectedFile = '';
@@ -1167,30 +1296,6 @@
         const fileData = await fileRes.json();
         if (fileData.candidates && fileData.candidates[0] && fileData.candidates[0].content && fileData.candidates[0].content.parts && fileData.candidates[0].content.parts[0]) {
           selectedFile = fileData.candidates[0].content.parts[0].text.trim().toLowerCase();
-          }
-        } else if (apiProvider === 'openai') {
-          // OpenAI prompt для выбора файла
-          const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
-          const fileRes = await throttledOpenAIFetchWithDots('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + apiKey,
-              // 'OpenAI-Organization': 'org-Bl6DvczDSdIeSsrTrD7uPyaY', // можно добавить если нужно
-            },
-            body: JSON.stringify({
-              model: apiModel,
-              messages: [
-                { role: 'system', content: fileSelectionPrompt },
-                { role: 'user', content: content }
-              ],
-              max_tokens: 20,
-              temperature: 0
-            })
-          }, false);
-          const fileData = await fileRes.json();
-          if (fileData.choices && fileData.choices[0] && fileData.choices[0].message && fileData.choices[0].message.content) {
-            selectedFile = fileData.choices[0].message.content.trim().toLowerCase();
           }
         } else if (apiProvider === 'deepseek') {
           // DeepSeek prompt для выбора файла
@@ -1284,14 +1389,12 @@
             if (!dataRes.ok) {
               const devtoolsMsg = `index.html:921 GET ${dataRes.url} ${dataRes.status} (${dataRes.statusText})`;
               console.error(devtoolsMsg + '\n' + (new Error().stack || '') + '\n' + text);
-              // Логируем ошибку и только потом throw
               throw new Error(`HTTP ${dataRes.status}: ${dataRes.statusText}`);
             }
             let loadedData;
             try {
               loadedData = JSON.parse(text);
             } catch (jsonErr) {
-              // Даже если парсинг не удался, devtoolsMsg уже залогирован выше
               console.error('Ошибка парсинга JSON при загрузке данных:', jsonErr, text);
               throw jsonErr;
             }
@@ -1328,7 +1431,6 @@
             try {
               mainData = JSON.parse(text);
             } catch (jsonErr) {
-              // Даже если парсинг не удался, devtoolsMsg уже залогирован выше
               console.error('Ошибка парсинга JSON Gemini:', jsonErr, text);
               appendMessage('assistant', 'Ошибка: ' + jsonErr.message);
               return;
@@ -1337,75 +1439,6 @@
               reply = mainData.candidates[0].content.parts[0].text.trim();
             } else {
               console.error('Ошибка Gemini:', mainData.error || mainData);
-              appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
-              return;
-            }
-          } else if (apiProvider === 'openai') {
-            // Показываем "..." как ассистент typing
-            let dotsDiv = document.createElement('div');
-            dotsDiv.className = 'msg assistant';
-            dotsDiv.textContent = '...';
-            chatbox.appendChild(dotsDiv);
-            chatbox.scrollTop = chatbox.scrollHeight;
-            const mainRes = await throttledOpenAIFetchWithDots('https://api.openai.com/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + apiKey,
-                // 'OpenAI-Organization': 'org-Bl6DvczDSdIeSsrTrD7uPyaY', // можно добавить если нужно
-              },
-              body: JSON.stringify({
-                model: apiModel,
-                messages: [
-                  { role: 'system', content: systemPrompt },
-                  { role: 'user', content: content }
-                ],
-                max_tokens: 512,
-                temperature: 0.7
-              })
-            }, true);
-            const text = await mainRes.text();
-            if (!mainRes.ok) {
-              const devtoolsMsg = `index.html:1047 POST ${mainRes.url} ${mainRes.status} (${mainRes.statusText})`;
-              console.error(devtoolsMsg + '\n' + (new Error().stack || '') + '\n' + text);
-            }
-            let mainData;
-            try {
-              mainData = JSON.parse(text);
-            } catch (jsonErr) {
-              // Даже если парсинг не удался, devtoolsMsg уже залогирован выше
-              console.error('Ошибка парсинга JSON OpenAI:', jsonErr, text);
-              if (dotsDiv && dotsDiv.parentNode) dotsDiv.textContent = 'Ошибка: ' + jsonErr.message;
-              return;
-            }
-            // Удалить последнее сообщение ассистента, если это "Определяю нужные данные..."
-            const lastMsg = chatbox.lastElementChild;
-            if (lastMsg && lastMsg.classList.contains('assistant') && lastMsg.textContent.trim() === 'Определяю нужные данные...') {
-              chatbox.removeChild(lastMsg);
-            }
-            // После получения ответа удаляем dotsDiv
-            if (dotsDiv && dotsDiv.parentNode) dotsDiv.parentNode.removeChild(dotsDiv);
-            if (mainData.choices && mainData.choices[0] && mainData.choices[0].message && mainData.choices[0].message.content) {
-              reply = mainData.choices[0].message.content.trim();
-              // --- Единая обработка для всех моделей ---
-              let mentionedItems = [];
-              if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
-                mentionedItems = filterMentionedItemsByHash(currentData.data, reply);
-                let comment = extractGptComment(reply, mentionedItems);
-                if (comment) {
-                  appendMessage('assistant', comment, null);
-                }
-                if (mentionedItems.length > 0) {
-                  renderBookingCards(mentionedItems);
-                }
-                if (!comment && mentionedItems.length === 0) {
-                  appendMessage('assistant', reply, null);
-                }
-              } else {
-                appendMessage('assistant', reply, null);
-              }
-            } else {
-              console.error('Ошибка OpenAI:', mainData.error || mainData);
               appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
               return;
             }
@@ -1436,7 +1469,6 @@
             try {
               mainData = JSON.parse(text);
             } catch (jsonErr) {
-              // Даже если парсинг не удался, devtoolsMsg уже залогирован выше
               console.error('Ошибка парсинга JSON DeepSeek:', jsonErr, text);
               appendMessage('assistant', 'Ошибка: ' + jsonErr.message);
               return;
@@ -1525,6 +1557,7 @@
             }
           } else if (apiProvider === 'other') {
             if (!apiEndpoint) {
+              chatbox.removeChild(chatbox.lastChild);
               appendMessage('assistant', 'Пожалуйста, укажите endpoint для вашего API.');
               return;
             }
@@ -1549,7 +1582,6 @@
               try {
                 mainData = JSON.parse(text);
               } catch (jsonErr) {
-                // Даже если парсинг не удался, devtoolsMsg уже залогирован выше
                 console.error('Ошибка парсинга JSON Other API:', jsonErr, text);
                 appendMessage('assistant', 'Ошибка: ' + jsonErr.message);
                 return;
@@ -1565,16 +1597,16 @@
             appendMessage('assistant', 'Выбранный API не поддерживается.');
             return;
           }
-            let mentionedItems = [];
-            if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
-              mentionedItems = filterMentionedItemsByHash(currentData.data, reply);
-              let comment = extractGptComment(reply, mentionedItems);
-              if (comment) {
-                appendMessage('assistant', comment, null);
-              }
-              if (mentionedItems.length > 0) {
-                renderBookingCards(mentionedItems);
-              }
+          let mentionedItems = [];
+          if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
+            mentionedItems = filterMentionedItemsByHash(currentData.data, reply);
+            let comment = extractGptComment(reply, mentionedItems);
+            if (comment) {
+              appendMessage('assistant', comment, null);
+            }
+            if (mentionedItems.length > 0) {
+              renderBookingCards(mentionedItems);
+            }
           }
         } else {
           chatbox.removeChild(chatbox.lastChild);
@@ -1582,7 +1614,6 @@
         }
       } catch (err) {
         chatbox.removeChild(chatbox.lastChild);
-        console.error('index.html:1047 Ошибка в chatForm.onsubmit:', err, err?.stack);
         appendMessage('assistant', 'Ошибка: ' + err.message);
       }
     };
