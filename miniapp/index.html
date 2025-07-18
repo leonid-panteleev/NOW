@@ -476,7 +476,7 @@
       position: absolute;
       top: 1em; right: 1em;
       font-size: 1.5em;
-      color: #7ecfff;
+      color: #e3f0ff;
       cursor: pointer;
       z-index: 10;
     }
@@ -680,6 +680,22 @@
       </div>
     </div>
   </div>
+  <!-- Booking Details Modal -->
+  <div class="modal" id="booking-details-modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeBookingDetailsModal()">&times;</span>
+      <span class="modal-icon">📄</span>
+      <h3>Детали бронирования</h3>
+      <div id="booking-details-content" style="width:100%;margin-bottom:1em;"></div>
+      <div style="width:100%;margin-bottom:1em;">
+        <label style="display:flex;align-items:center;gap:0.7em;font-size:1em;">
+          <input type="checkbox" id="booking-agree-checkbox" style="width:1.2em;height:1.2em;" />
+          <span>Я подтверждаю, что ознакомлен(а) с условиями бронирования и согласен(на) на обработку персональных данных.</span>
+        </label>
+      </div>
+      <button type="button" id="booking-confirm-btn" style="width:100%;margin-top:0.7em;background:#28a745;color:#fff;border:1.5px solid #23272f;border-radius:50px;font-size:1.13em;font-weight:700;padding:0.9em 0;box-shadow:0 4px 16px #0008,0 0 0 2px #23272f inset;transition:box-shadow 0.2s,background 0.2s,border 0.2s;cursor:pointer;" disabled>Подтвердить</button>
+    </div>
+  </div>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
     // --- Новый модал для API Key ---
@@ -860,9 +876,9 @@
 
     // Рендер карточек с расширенной информацией
     function renderBookingCards(items) {
-      // Remove previous cards
-      const oldCards = document.querySelectorAll('.booking-card');
-      oldCards.forEach(card => card.remove());
+      // Больше не удаляем предыдущие карточки!
+      // const oldCards = document.querySelectorAll('.booking-card');
+      // oldCards.forEach(card => card.remove());
       // State: only one selected at a time
       let selectedCard = null;
       let selectedBookingItem = null;
@@ -881,7 +897,7 @@
         if (item.contact) html += `Контакт: ${item.contact}<br>`;
         if (item.description) html += `Описание: ${item.description}<br>`;
         card.innerHTML = html;
-        // Выбрать
+        // Кнопка "Выбрать"
         const selectBtn = document.createElement('button');
         selectBtn.className = 'booking-btn';
         selectBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l7.1-7.1 1.4 1.4z"/></svg>Выбрать';
@@ -889,18 +905,11 @@
           document.querySelectorAll('.booking-card.selected').forEach(c => c.classList.remove('selected'));
           card.classList.add('selected');
           selectedBookingItem = item;
-          document.querySelectorAll('.booking-card .confirm-btn').forEach(b => b.style.display = 'none');
-          confirmBtn.style.display = 'inline-block';
+          openBookingDetailsModal(item);
         };
         card.appendChild(selectBtn);
-        // Забронировать (по умолчанию скрыта)
-        const confirmBtn = document.createElement('button');
-        confirmBtn.className = 'booking-btn confirm-btn';
-        confirmBtn.style.background = '#28a745';
-        confirmBtn.style.display = 'none';
-        confirmBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zm0-13H5V6h14v1z"/></svg>Забронировать${item.price_range ? ' за ' + item.price_range + ' ' + (item.currency || 'RUB') : ''}`;
-        confirmBtn.onclick = () => showPaymentForm(item);
-        card.appendChild(confirmBtn);
+        // Удаляем кнопку "Забронировать"
+        // (confirmBtn больше не нужен)
         document.getElementById('chatbox').appendChild(card);
       });
     }
@@ -1018,6 +1027,46 @@
       const inputRow = document.querySelector('.input-row');
       if (!inputRow.contains(e.target)) {
         userInput.blur();
+      }
+    });
+
+    // --- Booking Details Modal logic ---
+    const bookingDetailsModal = document.getElementById('booking-details-modal');
+    const bookingDetailsContent = document.getElementById('booking-details-content');
+    const bookingAgreeCheckbox = document.getElementById('booking-agree-checkbox');
+    const bookingConfirmBtn = document.getElementById('booking-confirm-btn');
+    function openBookingDetailsModal(item) {
+      // Заполнить детали
+      let html = `<strong style='color:#7ecfff;font-size:1.15em;'>${item.name}</strong><br>`;
+      if (item.venue) html += `Место: ${item.venue}<br>`;
+      if (item.date) html += `Дата: ${item.date}<br>`;
+      if (item.time) html += `Время: ${item.time}<br>`;
+      if (item.price_range) html += `Цена: ${item.price_range} ${item.currency || 'RUB'}<br>`;
+      if (item.specialization) html += `Специализация: ${item.specialization}<br>`;
+      if (item.experience) html += `Опыт: ${item.experience}<br>`;
+      if (item.rating) html += `Рейтинг: ${item.rating}<br>`;
+      if (item.contact) html += `Контакт: ${item.contact}<br>`;
+      if (item.description) html += `Описание: ${item.description}<br>`;
+      bookingDetailsContent.innerHTML = html;
+      bookingAgreeCheckbox.checked = false;
+      bookingConfirmBtn.disabled = true;
+      bookingDetailsModal.classList.add('active');
+    }
+    function closeBookingDetailsModal() {
+      bookingDetailsModal.classList.remove('active');
+    }
+    bookingAgreeCheckbox.addEventListener('change', function() {
+      bookingConfirmBtn.disabled = !this.checked;
+    });
+    bookingConfirmBtn.onclick = function() {
+      closeBookingDetailsModal();
+      // Можно добавить дальнейшую логику подтверждения бронирования
+      appendMessage('assistant', 'Спасибо! Ваша заявка на бронирование отправлена. Ожидайте подтверждения.');
+    };
+    // Клик по тёмной подложке закрывает модалку
+    bookingDetailsModal.addEventListener('mousedown', function(e) {
+      if (e.target === bookingDetailsModal) {
+        closeBookingDetailsModal();
       }
     });
   </script>
