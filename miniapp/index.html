@@ -1379,7 +1379,24 @@
               return;
             }
             if (mainData.choices && mainData.choices[0] && mainData.choices[0].message && mainData.choices[0].message.content) {
-              dotsDiv.textContent = mainData.choices[0].message.content.trim();
+              reply = mainData.choices[0].message.content.trim();
+              // --- Единая обработка для всех моделей ---
+              let mentionedItems = [];
+              if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
+                mentionedItems = filterMentionedItemsByHash(currentData.data, reply);
+                let comment = extractGptComment(reply, mentionedItems);
+                // Если есть комментарий — заменить ... на него, иначе оставить ...
+                if (comment) {
+                  dotsDiv.textContent = comment;
+                } else if (mentionedItems.length === 0) {
+                  dotsDiv.textContent = reply;
+                }
+                if (mentionedItems.length > 0) {
+                  renderBookingCards(mentionedItems);
+                }
+              } else {
+                dotsDiv.textContent = reply;
+              }
             } else {
               console.error('Ошибка OpenAI:', mainData.error || mainData);
               dotsDiv.textContent = 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка');
