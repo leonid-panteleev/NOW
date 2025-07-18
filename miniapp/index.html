@@ -750,17 +750,62 @@
           return json;
         });
     }
+
+    // --- fetchWithStatusLog: универсальная обёртка для логирования статусов POST-запросов ---
+    async function fetchWithStatusLog(url, options = {}) {
+      const method = (options.method || 'GET').toUpperCase();
+      const start = Date.now();
+      try {
+        const response = await fetch(url, options);
+        const clone = response.clone();
+        let json = null;
+        try {
+          json = await clone.json();
+        } catch (e) {
+          json = null;
+        }
+        const logObj = {
+          url,
+          method,
+          status: response.status,
+          statusText: response.statusText,
+          duration: Date.now() - start,
+          requestBody: options.body,
+          response: json
+        };
+        if (!response.ok) {
+          console.error('API POST error:', logObj);
+        } else {
+          console.info('API POST success:', logObj);
+        }
+        return response;
+      } catch (error) {
+        const logObj = {
+          url,
+          method,
+          status: 'network error',
+          statusText: '',
+          duration: Date.now() - start,
+          requestBody: options.body,
+          error: error.message
+        };
+        console.error('API POST network error:', logObj);
+        throw error;
+      }
+    }
     // --- Пример использования (оставлен только как комментарий) ---
     /*
-    fetch('/api/foo')
-      .then(handleResponse)
+    fetchWithStatusLog('/api/foo', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({foo: 'bar'})
+    })
+      .then(response => response.json())
       .then(json => {
-        // Ваш код с успешным json
-        console.log(json);
+        // твоя логика
       })
       .catch(error => {
-        // error содержит json + status + statusText
-        console.log(error);
+        // обработка ошибки
       });
     */
 
