@@ -729,6 +729,10 @@
       const orig = console[method];
       console[method] = function(...args) {
         window.__consoleLogs.push({ type: method, args: args, time: new Date().toISOString() });
+        // Для отладки
+        if (method === 'error') {
+          orig.call(console, 'log added to __consoleLogs', args);
+        }
         orig.apply(console, args);
       };
     });
@@ -740,7 +744,13 @@
       if (window.__consoleLogs.length === 0) {
         content.innerHTML = '<em>Нет логов</em>';
       } else {
-        content.innerHTML = window.__consoleLogs.map(l => `<div style='margin-bottom:0.4em;'><span style='color:#7ecfff;'>[${l.type}]</span> <span style='color:#aaa;'>${l.time.slice(11,19)}</span> <span>${l.args.map(a => (typeof a==='object'?JSON.stringify(a):a)).join(' ')}</span></div>`).join('');
+        content.innerHTML = window.__consoleLogs.map(l => {
+          if (l.type === 'http_error') {
+            return `<div style='margin-bottom:0.7em;'><span style='color:#ff6a6a;font-weight:bold;'>[HTTP]</span> <span style='color:#aaa;'>${l.time.slice(11,19)}</span><br><span style='font-family:monospace;'>${l.msg}</span><br><pre style='white-space:pre-wrap;background:#222;padding:0.3em 0.5em;border-radius:6px;color:#fff;margin:0.3em 0;'>${l.text}</pre><div style='color:#888;font-size:0.85em;'>${l.stack.replace(/\n/g,'<br>')}</div></div>`;
+          } else {
+            return `<div style='margin-bottom:0.4em;'><span style='color:#7ecfff;'>[${l.type}]</span> <span style='color:#aaa;'>${l.time.slice(11,19)}</span> <span>${l.args.map(a => (typeof a==='object'?JSON.stringify(a):a)).join(' ')}</span></div>`;
+          }
+        }).join('');
       }
       modal.classList.add('active');
       // Прокрутка вниз
@@ -1124,13 +1134,31 @@
         if (dataFiles[selectedFile]) {
           try {
             const dataRes = await fetch(dataFiles[selectedFile]);
+            const text = await dataRes.text();
             if (!dataRes.ok) {
-              const text = await dataRes.text();
-              const devtoolsMsg = `index.html:921 GET ${dataRes.url} ${dataRes.status} (${dataRes.statusText})`;
-              console.error(devtoolsMsg + '\n' + (new Error().stack || '') + '\n' + text);
+              const stack = (new Error().stack || '');
+              window.__consoleLogs.push({
+                type: 'http_error',
+                msg: `index.html:921 GET ${dataRes.url} ${dataRes.status} (${dataRes.statusText})`,
+                url: dataRes.url,
+                status: dataRes.status,
+                statusText: dataRes.statusText,
+                method: 'GET',
+                text,
+                stack,
+                time: new Date().toISOString()
+              });
+              // Логируем ошибку и только потом throw
               throw new Error(`HTTP ${dataRes.status}: ${dataRes.statusText}`);
             }
-            const loadedData = await dataRes.json();
+            let loadedData;
+            try {
+              loadedData = JSON.parse(text);
+            } catch (jsonErr) {
+              // Даже если парсинг не удался, devtoolsMsg уже залогирован выше
+              console.error('Ошибка парсинга JSON при загрузке данных:', jsonErr, text);
+              throw jsonErr;
+            }
             currentData = loadedData;
             dataLoaded = true;
           } catch (dataError) {
@@ -1155,12 +1183,30 @@
                 ]
               })
             });
+            const text = await mainRes.text();
             if (!mainRes.ok) {
-              const text = await mainRes.text();
-              const devtoolsMsg = `index.html:1047 POST ${mainRes.url} ${mainRes.status} (${mainRes.statusText})`;
-              console.error(devtoolsMsg + '\n' + (new Error().stack || '') + '\n' + text);
+              const stack = (new Error().stack || '');
+              window.__consoleLogs.push({
+                type: 'http_error',
+                msg: `index.html:1047 POST ${mainRes.url} ${mainRes.status} (${mainRes.statusText})`,
+                url: mainRes.url,
+                status: mainRes.status,
+                statusText: mainRes.statusText,
+                method: 'POST',
+                text,
+                stack,
+                time: new Date().toISOString()
+              });
             }
-            const mainData = await mainRes.json();
+            let mainData;
+            try {
+              mainData = JSON.parse(text);
+            } catch (jsonErr) {
+              // Даже если парсинг не удался, devtoolsMsg уже залогирован выше
+              console.error('Ошибка парсинга JSON Gemini:', jsonErr, text);
+              appendMessage('assistant', 'Ошибка: ' + jsonErr.message);
+              return;
+            }
             if (mainData.candidates && mainData.candidates[0] && mainData.candidates[0].content && mainData.candidates[0].content.parts && mainData.candidates[0].content.parts[0]) {
               reply = mainData.candidates[0].content.parts[0].text.trim();
             } else {
@@ -1186,12 +1232,30 @@
                 temperature: 0.7
               })
             });
+            const text = await mainRes.text();
             if (!mainRes.ok) {
-              const text = await mainRes.text();
-              const devtoolsMsg = `index.html:1047 POST ${mainRes.url} ${mainRes.status} (${mainRes.statusText})`;
-              console.error(devtoolsMsg + '\n' + (new Error().stack || '') + '\n' + text);
+              const stack = (new Error().stack || '');
+              window.__consoleLogs.push({
+                type: 'http_error',
+                msg: `index.html:1047 POST ${mainRes.url} ${mainRes.status} (${mainRes.statusText})`,
+                url: mainRes.url,
+                status: mainRes.status,
+                statusText: mainRes.statusText,
+                method: 'POST',
+                text,
+                stack,
+                time: new Date().toISOString()
+              });
             }
-            const mainData = await mainRes.json();
+            let mainData;
+            try {
+              mainData = JSON.parse(text);
+            } catch (jsonErr) {
+              // Даже если парсинг не удался, devtoolsMsg уже залогирован выше
+              console.error('Ошибка парсинга JSON OpenAI:', jsonErr, text);
+              appendMessage('assistant', 'Ошибка: ' + jsonErr.message);
+              return;
+            }
             if (mainData.choices && mainData.choices[0] && mainData.choices[0].message && mainData.choices[0].message.content) {
               reply = mainData.choices[0].message.content.trim();
             } else {
@@ -1217,12 +1281,30 @@
                 stream: false
               })
             });
+            const text = await mainRes.text();
             if (!mainRes.ok) {
-              const text = await mainRes.text();
-              const devtoolsMsg = `index.html:1047 POST ${mainRes.url} ${mainRes.status} (${mainRes.statusText})`;
-              console.error(devtoolsMsg + '\n' + (new Error().stack || '') + '\n' + text);
+              const stack = (new Error().stack || '');
+              window.__consoleLogs.push({
+                type: 'http_error',
+                msg: `index.html:1047 POST ${mainRes.url} ${mainRes.status} (${mainRes.statusText})`,
+                url: mainRes.url,
+                status: mainRes.status,
+                statusText: mainRes.statusText,
+                method: 'POST',
+                text,
+                stack,
+                time: new Date().toISOString()
+              });
             }
-            const mainData = await mainRes.json();
+            let mainData;
+            try {
+              mainData = JSON.parse(text);
+            } catch (jsonErr) {
+              // Даже если парсинг не удался, devtoolsMsg уже залогирован выше
+              console.error('Ошибка парсинга JSON DeepSeek:', jsonErr, text);
+              appendMessage('assistant', 'Ошибка: ' + jsonErr.message);
+              return;
+            }
             if (mainData.choices && mainData.choices[0] && mainData.choices[0].message && mainData.choices[0].message.content) {
               reply = mainData.choices[0].message.content.trim();
             } else {
@@ -1247,12 +1329,30 @@
                   prompt: systemPrompt + "\n\n" + content
                 })
               });
+              const text = await mainRes.text();
               if (!mainRes.ok) {
-                const text = await mainRes.text();
-                const devtoolsMsg = `index.html:1047 POST ${mainRes.url} ${mainRes.status} (${mainRes.statusText})`;
-                console.error(devtoolsMsg + '\n' + (new Error().stack || '') + '\n' + text);
+                const stack = (new Error().stack || '');
+                window.__consoleLogs.push({
+                  type: 'http_error',
+                  msg: `index.html:1047 POST ${mainRes.url} ${mainRes.status} (${mainRes.statusText})`,
+                  url: mainRes.url,
+                  status: mainRes.status,
+                  statusText: mainRes.statusText,
+                  method: 'POST',
+                  text,
+                  stack,
+                  time: new Date().toISOString()
+                });
               }
-              const mainData = await mainRes.json();
+              let mainData;
+              try {
+                mainData = JSON.parse(text);
+              } catch (jsonErr) {
+                // Даже если парсинг не удался, devtoolsMsg уже залогирован выше
+                console.error('Ошибка парсинга JSON Other API:', jsonErr, text);
+                appendMessage('assistant', 'Ошибка: ' + jsonErr.message);
+                return;
+              }
               // Попытка получить текст из разных возможных полей
               reply = mainData.choices?.[0]?.text || mainData.choices?.[0]?.message?.content || mainData.result || JSON.stringify(mainData);
             } catch (err) {
@@ -1277,12 +1377,11 @@
           }
         } else {
           chatbox.removeChild(chatbox.lastChild);
-          console.error(`Не удалось определить нужные данные (${selectedFile})`);
           appendMessage('assistant', `Не удалось определить нужные данные (${selectedFile}). Попробуйте переформулировать запрос.`);
         }
       } catch (err) {
         chatbox.removeChild(chatbox.lastChild);
-        console.error('Ошибка в chatForm.onsubmit:', err);
+        console.error('index.html:1047 Ошибка в chatForm.onsubmit:', err, err?.stack);
         appendMessage('assistant', 'Ошибка: ' + err.message);
       }
     };
