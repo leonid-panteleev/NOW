@@ -1375,9 +1375,11 @@
             } catch (jsonErr) {
               // Даже если парсинг не удался, devtoolsMsg уже залогирован выше
               console.error('Ошибка парсинга JSON OpenAI:', jsonErr, text);
-              dotsDiv.textContent = 'Ошибка: ' + jsonErr.message;
+              if (dotsDiv && dotsDiv.parentNode) dotsDiv.textContent = 'Ошибка: ' + jsonErr.message;
               return;
             }
+            // После получения ответа удаляем dotsDiv
+            if (dotsDiv && dotsDiv.parentNode) dotsDiv.parentNode.removeChild(dotsDiv);
             if (mainData.choices && mainData.choices[0] && mainData.choices[0].message && mainData.choices[0].message.content) {
               reply = mainData.choices[0].message.content.trim();
               // --- Единая обработка для всех моделей ---
@@ -1385,21 +1387,21 @@
               if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
                 mentionedItems = filterMentionedItemsByHash(currentData.data, reply);
                 let comment = extractGptComment(reply, mentionedItems);
-                // Если есть комментарий — заменить ... на него, иначе оставить ...
                 if (comment) {
-                  dotsDiv.textContent = comment;
-                } else if (mentionedItems.length === 0) {
-                  dotsDiv.textContent = reply;
+                  appendMessage('assistant', comment, null);
                 }
                 if (mentionedItems.length > 0) {
                   renderBookingCards(mentionedItems);
                 }
+                if (!comment && mentionedItems.length === 0) {
+                  appendMessage('assistant', reply, null);
+                }
               } else {
-                dotsDiv.textContent = reply;
+                appendMessage('assistant', reply, null);
               }
             } else {
               console.error('Ошибка OpenAI:', mainData.error || mainData);
-              dotsDiv.textContent = 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка');
+              appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
               return;
             }
           } else if (apiProvider === 'deepseek') {
