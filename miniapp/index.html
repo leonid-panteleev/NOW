@@ -221,7 +221,7 @@
       color: #fff;
       border-radius: 18px;
       box-shadow: 0 2px 12px #0004;
-      margin: 0.7em 0;
+      margin: 0.25em 0;
       padding: 1.2em 1em 1em 1em;
       position: relative;
       max-width: 98vw;
@@ -621,10 +621,22 @@
     <div class="modal-content apikey-modal-content">
       <span class="modal-close" onclick="closeApikeyModal()">&times;</span>
       <span class="modal-icon">🔑</span>
-      <h3>Введите Gemini API Key</h3>
+      <h3>Введите API Key</h3>
+      <div style="width:100%;margin-bottom:0.7em;">
+        <label for="api-provider" style="font-size:0.98em;color:#fff;">Выберите API:</label>
+        <select id="api-provider" style="width:100%;padding:0.7em 1em;border-radius:10px;border:1px solid #333a;background:#181c22;color:#fff;font-size:0.98em;margin-top:0.2em;font-family:'Martian Mono','Roboto Mono',monospace;">
+          <option value="gemini">Gemini</option>
+          <option value="openai">ChatGPT (OpenAI)</option>
+          <option value="other">Другое</option>
+        </select>
+        <div id="api-endpoint-wrap" style="display:none;margin-top:0.7em;">
+          <label for="api-endpoint" style="font-size:0.98em;color:#fff;">Endpoint:</label>
+          <input type="text" id="api-endpoint" placeholder="https://example.com/api" style="width:100%;padding:0.7em 1em;border-radius:10px;border:1px solid #333a;background:#181c22;color:#fff;font-size:0.89em;margin-top:0.2em;font-family:'Martian Mono','Roboto Mono',monospace;" />
+        </div>
+      </div>
       <div class="modal-input-wrap">
         <span class="input-icon">🔑</span>
-        <input type="text" id="api-key" placeholder="Gemini API Key" autocomplete="off" inputmode="text" spellcheck="false" style="padding-left:2.5em;width:100%;max-width:340px;border:2px solid #7ecfff;background:#232b36;color:#fff;box-shadow:0 2px 12px #0003;border-radius:14px;" />
+        <input type="text" id="api-key" placeholder="API Key" autocomplete="off" inputmode="text" spellcheck="false" style="padding-left:2.5em;width:100%;max-width:340px;border:2px solid #7ecfff;background:#232b36;color:#fff;box-shadow:0 2px 12px #0003;border-radius:14px;font-size:0.98em;font-family:'Martian Mono','Roboto Mono',monospace;" />
       </div>
       <button class="apikey-btn" id="apikey-save-btn" type="button" style="margin-top:0.7em;width:100%;display:flex;align-items:center;justify-content:center;background:#181a1f;color:#fff;border:1.5px solid #23272f;border-radius:50px;font-size:1.13em;font-weight:700;padding:0.9em 0;box-shadow:0 4px 16px #0008,0 0 0 2px #23272f inset;transition:box-shadow 0.2s,background 0.2s,border 0.2s;cursor:pointer;">Добавить</button>
     </div>
@@ -706,8 +718,22 @@
       apikeyModal.classList.add('active');
       const apiKeyInput = document.getElementById('api-key');
       // Подставить сохранённый ключ, если есть
-      const savedKey = localStorage.getItem('gemini_api_key') || '';
+      const savedKey = localStorage.getItem('api_key') || '';
       apiKeyInput.value = savedKey;
+      // Подставить сохранённый провайдер, если есть
+      const apiProvider = document.getElementById('api-provider');
+      const savedProvider = localStorage.getItem('api_provider') || 'gemini';
+      apiProvider.value = savedProvider;
+      // Endpoint
+      const apiEndpointWrap = document.getElementById('api-endpoint-wrap');
+      const apiEndpointInput = document.getElementById('api-endpoint');
+      const savedEndpoint = localStorage.getItem('api_endpoint') || '';
+      apiEndpointInput.value = savedEndpoint;
+      if (savedProvider === 'other') {
+        apiEndpointWrap.style.display = '';
+      } else {
+        apiEndpointWrap.style.display = 'none';
+      }
       setTimeout(() => { apiKeyInput.focus(); }, 150);
       apiKeyInput.type = 'text';
     }
@@ -715,10 +741,29 @@
       apikeyModal.classList.remove('active');
     }
     showKeyBtn.onclick = openApikeyModal;
+    // Селектор API: показывать/скрывать endpoint
+    document.getElementById('api-provider').addEventListener('change', function() {
+      const apiEndpointWrap = document.getElementById('api-endpoint-wrap');
+      if (this.value === 'other') {
+        apiEndpointWrap.style.display = '';
+      } else {
+        apiEndpointWrap.style.display = 'none';
+      }
+    });
     apikeySaveBtn.onclick = () => {
       const apiKeyInput = document.getElementById('api-key');
-      const realValue = apiKeyInput.getAttribute('data-real') || '';
-      localStorage.setItem('gemini_api_key', realValue.trim());
+      const realValue = apiKeyInput.value || '';
+      localStorage.setItem('api_key', realValue.trim());
+      // Сохраняем выбранный провайдер
+      const apiProvider = document.getElementById('api-provider').value;
+      localStorage.setItem('api_provider', apiProvider);
+      // Сохраняем endpoint если выбран 'Другое'
+      const apiEndpointInput = document.getElementById('api-endpoint');
+      if (apiProvider === 'other') {
+        localStorage.setItem('api_endpoint', apiEndpointInput.value.trim());
+      } else {
+        localStorage.removeItem('api_endpoint');
+      }
       closeApikeyModal();
     };
     // Клик по тёмной подложке закрывает модалку
@@ -730,8 +775,18 @@
     // Enter на input сохраняет и закрывает
     document.getElementById('api-key').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
-        const realValue = this.getAttribute('data-real') || '';
-        localStorage.setItem('gemini_api_key', realValue.trim());
+        const realValue = this.value || '';
+        localStorage.setItem('api_key', realValue.trim());
+        // Сохраняем выбранный провайдер
+        const apiProvider = document.getElementById('api-provider').value;
+        localStorage.setItem('api_provider', apiProvider);
+        // Сохраняем endpoint если выбран 'Другое'
+        const apiEndpointInput = document.getElementById('api-endpoint');
+        if (apiProvider === 'other') {
+          localStorage.setItem('api_endpoint', apiEndpointInput.value.trim());
+        } else {
+          localStorage.removeItem('api_endpoint');
+        }
         closeApikeyModal();
         e.preventDefault();
       }
@@ -919,10 +974,12 @@
       e.preventDefault();
       e.stopPropagation();
 
-      const apiKey = document.getElementById('api-key').value || '';
-      const apiKeyFinal = apiKey || localStorage.getItem('gemini_api_key') || '';
-      if (!apiKeyFinal) {
-        alert('Пожалуйста, введите ваш Gemini API Key!');
+      // Получаем ключ и провайдера
+      const apiKey = localStorage.getItem('api_key') || '';
+      const apiProvider = localStorage.getItem('api_provider') || 'gemini';
+      const apiEndpoint = localStorage.getItem('api_endpoint') || '';
+      if (!apiKey) {
+        alert('Пожалуйста, введите ваш API Key!');
         return;
       }
 
@@ -934,25 +991,61 @@
       appendMessage('assistant', 'Определяю нужные данные...');
 
       try {
-        // First, ask Gemini to determine which data file is needed
-        const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
-
-        // Gemini file selection request
-        const fileRes = await fetch(GEMINI_ENDPOINT + '?key=' + apiKeyFinal, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json; charset=utf-8'
-          },
-          body: JSON.stringify({
-            contents: [
-              { parts: [ { text: fileSelectionPrompt + "\n\n" + content } ] }
-            ]
-          })
-        });
-        const fileData = await fileRes.json();
+        // --- Определяем нужный файл через выбранное API ---
         let selectedFile = '';
-        if (fileData.candidates && fileData.candidates[0] && fileData.candidates[0].content && fileData.candidates[0].content.parts && fileData.candidates[0].content.parts[0]) {
-          selectedFile = fileData.candidates[0].content.parts[0].text.trim().toLowerCase();
+        if (apiProvider === 'gemini') {
+          const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
+          const fileRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8'
+            },
+            body: JSON.stringify({
+              contents: [
+                { parts: [ { text: fileSelectionPrompt + "\n\n" + content } ] }
+              ]
+            })
+          });
+          const fileData = await fileRes.json();
+          if (fileData.candidates && fileData.candidates[0] && fileData.candidates[0].content && fileData.candidates[0].content.parts && fileData.candidates[0].content.parts[0]) {
+            selectedFile = fileData.candidates[0].content.parts[0].text.trim().toLowerCase();
+          }
+        } else if (apiProvider === 'openai') {
+          // OpenAI prompt для выбора файла
+          const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
+          const fileRes = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + apiKey,
+              // 'OpenAI-Organization': 'org-Bl6DvczDSdIeSsrTrD7uPyaY', // можно добавить если нужно
+            },
+            body: JSON.stringify({
+              model: 'gpt-3.5-turbo',
+              messages: [
+                { role: 'system', content: fileSelectionPrompt },
+                { role: 'user', content: content }
+              ],
+              max_tokens: 20,
+              temperature: 0
+            })
+          });
+          const fileData = await fileRes.json();
+          if (fileData.choices && fileData.choices[0] && fileData.choices[0].message && fileData.choices[0].message.content) {
+            selectedFile = fileData.choices[0].message.content.trim().toLowerCase();
+          }
+        } else if (apiProvider === 'other') {
+          if (!apiEndpoint) {
+            chatbox.removeChild(chatbox.lastChild);
+            appendMessage('assistant', 'Пожалуйста, укажите endpoint для вашего API.');
+            return;
+          }
+          // Для выбора файла — просто пропускаем, используем первый файл (или можно реализовать свою логику)
+          selectedFile = Object.keys(dataFiles)[0];
+        } else {
+          chatbox.removeChild(chatbox.lastChild);
+          appendMessage('assistant', 'Выбранный API не поддерживается.');
+          return;
         }
         // Load the selected data file
         if (dataFiles[selectedFile]) {
@@ -970,36 +1063,91 @@
             return;
           }
           chatbox.removeChild(chatbox.lastChild);
-          // Now create the main response with loaded data
+          // --- Основной ответ через выбранное API ---
           const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n\nWhen the user confirms booking, respond as before.`;
-          // Gemini main response request
-          const mainRes = await fetch(GEMINI_ENDPOINT + '?key=' + apiKeyFinal, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json; charset=utf-8'
-            },
-            body: JSON.stringify({
-              contents: [
-                { parts: [ { text: systemPrompt + "\n\n" + content } ] }
-              ]
-            })
-          });
-          const mainData = await mainRes.json();
-          if (mainData.candidates && mainData.candidates[0] && mainData.candidates[0].content && mainData.candidates[0].content.parts && mainData.candidates[0].content.parts[0]) {
-            const reply = mainData.candidates[0].content.parts[0].text.trim();
-            let mentionedItems = [];
-            if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
-              mentionedItems = filterMentionedItemsByHash(currentData.data, reply);
-              let comment = extractGptComment(reply, mentionedItems);
-              if (comment) {
-                appendMessage('assistant', comment, null);
-              }
-              if (mentionedItems.length > 0) {
-                renderBookingCards(mentionedItems);
-              }
+          let reply = '';
+          if (apiProvider === 'gemini') {
+            const mainRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json; charset=utf-8'
+              },
+              body: JSON.stringify({
+                contents: [
+                  { parts: [ { text: systemPrompt + "\n\n" + content } ] }
+                ]
+              })
+            });
+            const mainData = await mainRes.json();
+            if (mainData.candidates && mainData.candidates[0] && mainData.candidates[0].content && mainData.candidates[0].content.parts && mainData.candidates[0].content.parts[0]) {
+              reply = mainData.candidates[0].content.parts[0].text.trim();
+            } else {
+              appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
+              return;
+            }
+          } else if (apiProvider === 'openai') {
+            const mainRes = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey,
+                // 'OpenAI-Organization': 'org-Bl6DvczDSdIeSsrTrD7uPyaY', // можно добавить если нужно
+              },
+              body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: content }
+                ],
+                max_tokens: 512,
+                temperature: 0.7
+              })
+            });
+            const mainData = await mainRes.json();
+            if (mainData.choices && mainData.choices[0] && mainData.choices[0].message && mainData.choices[0].message.content) {
+              reply = mainData.choices[0].message.content.trim();
+            } else {
+              appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
+              return;
+            }
+          } else if (apiProvider === 'other') {
+            if (!apiEndpoint) {
+              appendMessage('assistant', 'Пожалуйста, укажите endpoint для вашего API.');
+              return;
+            }
+            // Пример запроса к произвольному endpoint (POST, JSON)
+            try {
+              const mainRes = await fetch(apiEndpoint, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + apiKey
+                },
+                body: JSON.stringify({
+                  prompt: systemPrompt + "\n\n" + content
+                })
+              });
+              const mainData = await mainRes.json();
+              // Попытка получить текст из разных возможных полей
+              reply = mainData.choices?.[0]?.text || mainData.choices?.[0]?.message?.content || mainData.result || JSON.stringify(mainData);
+            } catch (err) {
+              appendMessage('assistant', 'Ошибка при обращении к вашему API: ' + err.message);
+              return;
             }
           } else {
-            appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
+            appendMessage('assistant', 'Выбранный API не поддерживается.');
+            return;
+          }
+          let mentionedItems = [];
+          if (currentData.data && Array.isArray(currentData.data) && currentData.data.length > 0) {
+            mentionedItems = filterMentionedItemsByHash(currentData.data, reply);
+            let comment = extractGptComment(reply, mentionedItems);
+            if (comment) {
+              appendMessage('assistant', comment, null);
+            }
+            if (mentionedItems.length > 0) {
+              renderBookingCards(mentionedItems);
+            }
           }
         } else {
           chatbox.removeChild(chatbox.lastChild);
