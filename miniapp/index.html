@@ -1134,16 +1134,6 @@
         else if (apiProvider === 'gemini') apiModel = 'gemini-2.0-flash';
       }
 
-      // Таймаут между запросами к OpenAI
-      if (apiProvider === 'openai') {
-        const now = Date.now();
-        if (now - lastOpenAITimestamp < 3000) {
-          appendMessage('assistant', 'Пожалуйста, подождите 3 секунды между запросами к OpenAI.');
-          return;
-        }
-        lastOpenAITimestamp = now;
-      }
-
       const content = userInput.value.trim();
       if (!content) return;
 
