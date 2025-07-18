@@ -193,10 +193,10 @@
       font-weight: 100;
     }
     .msg.user {
-      background: #23272f;
-      color: #fff;
+      background: #e3f0ff;
+      color: #1a2330;
       align-self: flex-end;
-      box-shadow: 0 2px 8px #1a6cff33;
+      box-shadow: 0 2px 8px #0002;
       border-radius: 8px;
       padding-left: 2.2em;
       padding-right: 2.2em;
@@ -419,7 +419,7 @@
       position: absolute;
       left: 1.1em;
       top: 50%;
-      transform: translateY(-52%); /* было -50%, чуть ниже */
+      transform: translateY(-52%) rotate(-45deg); /* было -50%, чуть ниже, теперь повернуто */
       font-size: 1.3em; /* увеличено */
       color: #fff;
       pointer-events: none;
@@ -585,6 +585,9 @@
         'wght' 200,
         'GRAD' 0,
         'opsz' 24;
+    }
+    #show-key-btn .material-symbols-outlined.header-icon {
+      transform: rotate(-45deg);
     }
     .material-symbols-outlined.send-icon {
       font-size: 36px;
@@ -798,7 +801,7 @@
       const div = document.createElement('div');
       div.className = 'msg ' + role;
       const textDiv = document.createElement('div');
-      textDiv.textContent = (role === 'user' ? 'You: ' : 'Assistant: ') + content;
+      textDiv.textContent = (role === 'user' ? '' : '') + content;
       div.appendChild(textDiv);
       chatbox.appendChild(div);
       chatbox.scrollTop = chatbox.scrollHeight;
@@ -1003,6 +1006,20 @@
 
     // Payment logic (оставьте как было)
     // ... ваш код оплаты и закрытия модального окна ...
+    // Скрывать клавиатуру на телефоне при клике вне input
+    document.addEventListener('touchstart', function(e) {
+      const inputRow = document.querySelector('.input-row');
+      if (!inputRow.contains(e.target)) {
+        userInput.blur();
+      }
+    });
+    document.addEventListener('mousedown', function(e) {
+      // Для десктопа — тоже снимаем фокус
+      const inputRow = document.querySelector('.input-row');
+      if (!inputRow.contains(e.target)) {
+        userInput.blur();
+      }
+    });
   </script>
 </body>
 </html>
