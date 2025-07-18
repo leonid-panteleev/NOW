@@ -634,12 +634,24 @@
           <label for="api-endpoint" style="font-size:0.98em;color:#fff;">Endpoint:</label>
           <input type="text" id="api-endpoint" placeholder="https://example.com/api" style="width:100%;padding:0.7em 1em;border-radius:10px;border:1px solid #333a;background:#181c22;color:#fff;font-size:0.89em;margin-top:0.2em;font-family:'Martian Mono','Roboto Mono',monospace;" />
         </div>
+        <!-- Скрытая кнопка для открытия логов -->
+        <button id="show-console-btn" title="Show logs" aria-label="Show logs" style="position:absolute;left:12px;top:12px;width:22px;height:22px;opacity:0.18;z-index:10;background:none;border:none;cursor:pointer;padding:0;transition:opacity 0.2s;">🐞</button>
       </div>
       <div class="modal-input-wrap">
         <span class="input-icon">🔑</span>
         <input type="text" id="api-key" placeholder="API Key" autocomplete="off" inputmode="text" spellcheck="false" style="padding-left:2.5em;width:100%;max-width:340px;border:2px solid #7ecfff;background:#232b36;color:#fff;box-shadow:0 2px 12px #0003;border-radius:14px;font-size:0.98em;font-family:'Martian Mono','Roboto Mono',monospace;" />
       </div>
       <button class="apikey-btn" id="apikey-save-btn" type="button" style="margin-top:0.7em;width:100%;display:flex;align-items:center;justify-content:center;background:#181a1f;color:#fff;border:1.5px solid #23272f;border-radius:50px;font-size:1.13em;font-weight:700;padding:0.9em 0;box-shadow:0 4px 16px #0008,0 0 0 2px #23272f inset;transition:box-shadow 0.2s,background 0.2s,border 0.2s;cursor:pointer;">Добавить</button>
+    </div>
+  </div>
+  <!-- Modal for console logs -->
+  <div class="modal" id="console-log-modal">
+    <div class="modal-content" style="max-width:600px;min-width:220px;">
+      <span class="modal-close" onclick="closeConsoleLogModal()">&times;</span>
+      <span class="modal-icon">🐞</span>
+      <h3>Console logs</h3>
+      <div id="console-log-content" style="width:100%;max-height:300px;overflow-y:auto;background:#181c22;color:#fff;font-size:0.92em;font-family:'Martian Mono','Roboto Mono',monospace;border-radius:8px;padding:1em 0.5em 1em 0.5em;margin-bottom:1em;"></div>
+      <button type="button" onclick="closeConsoleLogModal()" style="width:100%;margin-top:0.7em;background:#23272f;color:#fff;border:1.5px solid #23272f;border-radius:50px;font-size:1.13em;font-weight:700;padding:0.7em 0;box-shadow:0 4px 16px #0008,0 0 0 2px #23272f inset;transition:box-shadow 0.2s,background 0.2s,border 0.2s;cursor:pointer;">Закрыть</button>
     </div>
   </div>
   <div class="container">
@@ -711,6 +723,40 @@
   </div>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
+    // --- Console log interception ---
+    window.__consoleLogs = [];
+    ['log','info','warn','error'].forEach(function(method) {
+      const orig = console[method];
+      console[method] = function(...args) {
+        window.__consoleLogs.push({ type: method, args: args, time: new Date().toISOString() });
+        orig.apply(console, args);
+      };
+    });
+
+    // --- Console log modal logic ---
+    function openConsoleLogModal() {
+      const modal = document.getElementById('console-log-modal');
+      const content = document.getElementById('console-log-content');
+      if (window.__consoleLogs.length === 0) {
+        content.innerHTML = '<em>Нет логов</em>';
+      } else {
+        content.innerHTML = window.__consoleLogs.map(l => `<div style='margin-bottom:0.4em;'><span style='color:#7ecfff;'>[${l.type}]</span> <span style='color:#aaa;'>${l.time.slice(11,19)}</span> <span>${l.args.map(a => (typeof a==='object'?JSON.stringify(a):a)).join(' ')}</span></div>`).join('');
+      }
+      modal.classList.add('active');
+    }
+    function closeConsoleLogModal() {
+      document.getElementById('console-log-modal').classList.remove('active');
+    }
+    document.getElementById('show-console-btn').onclick = openConsoleLogModal;
+    document.getElementById('console-log-modal').addEventListener('mousedown', function(e) {
+      if (e.target === this) closeConsoleLogModal();
+    });
+
+    // Hover-эффект для скрытой кнопки
+    const showConsoleBtn = document.getElementById('show-console-btn');
+    showConsoleBtn.addEventListener('mouseenter', function() { this.style.opacity = '0.6'; });
+    showConsoleBtn.addEventListener('mouseleave', function() { this.style.opacity = '0.18'; });
+
     // --- Новый модал для API Key ---
     const showKeyBtn = document.getElementById('show-key-btn');
     const apikeyModal = document.getElementById('apikey-modal');
