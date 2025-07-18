@@ -1120,13 +1120,18 @@
       e.preventDefault();
       e.stopPropagation();
 
-      // Получаем ключ и провайдера
+      // Получаем ключ, провайдера, endpoint и модель
       const apiKey = localStorage.getItem('api_key') || '';
       const apiProvider = localStorage.getItem('api_provider') || 'gemini';
       const apiEndpoint = localStorage.getItem('api_endpoint') || '';
-      if (!apiKey) {
-        alert('Пожалуйста, введите ваш API Key!');
-        return;
+      let apiModel = localStorage.getItem('api_model') || '';
+      if (!apiModel) {
+        // fallback по умолчанию
+        if (apiProvider === 'groq') apiModel = 'llama-3-70b-8192';
+        else if (apiProvider === 'mistral') apiModel = 'mistral-large-latest';
+        else if (apiProvider === 'openai') apiModel = 'gpt-3.5-turbo';
+        else if (apiProvider === 'deepseek') apiModel = 'deepseek-chat';
+        else if (apiProvider === 'gemini') apiModel = 'gemini-2.0-flash';
       }
 
       const content = userInput.value.trim();
