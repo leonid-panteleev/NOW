@@ -1134,6 +1134,16 @@
         else if (apiProvider === 'gemini') apiModel = 'gemini-2.0-flash';
       }
 
+      // Таймаут между запросами к OpenAI
+      if (apiProvider === 'openai') {
+        const now = Date.now();
+        if (now - lastOpenAITimestamp < 3000) {
+          appendMessage('assistant', 'Пожалуйста, подождите 3 секунды между запросами к OpenAI.');
+          return;
+        }
+        lastOpenAITimestamp = now;
+      }
+
       const content = userInput.value.trim();
       if (!content) return;
 
@@ -1164,7 +1174,7 @@
         } else if (apiProvider === 'openai') {
           // OpenAI prompt для выбора файла
           const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
-          const fileRes = await fetch('https://api.openai.com/v1/chat/completions', {
+          const fileRes = await fetchWithStatusLog('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1172,7 +1182,7 @@
               // 'OpenAI-Organization': 'org-Bl6DvczDSdIeSsrTrD7uPyaY', // можно добавить если нужно
             },
             body: JSON.stringify({
-              model: 'gpt-3.5-turbo',
+              model: apiModel,
               messages: [
                 { role: 'system', content: fileSelectionPrompt },
                 { role: 'user', content: content }
@@ -1188,7 +1198,7 @@
         } else if (apiProvider === 'deepseek') {
           // DeepSeek prompt для выбора файла
           const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
-          const fileRes = await fetch('https://api.deepseek.com/chat/completions', {
+          const fileRes = await fetchWithStatusLog('https://api.deepseek.com/chat/completions', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1334,7 +1344,7 @@
               return;
             }
           } else if (apiProvider === 'openai') {
-            const mainRes = await fetch('https://api.openai.com/v1/chat/completions', {
+            const mainRes = await throttledOpenAIFetch('https://api.openai.com/v1/chat/completions', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -1342,7 +1352,7 @@
                 // 'OpenAI-Organization': 'org-Bl6DvczDSdIeSsrTrD7uPyaY', // можно добавить если нужно
               },
               body: JSON.stringify({
-                model: 'gpt-3.5-turbo',
+                model: apiModel,
                 messages: [
                   { role: 'system', content: systemPrompt },
                   { role: 'user', content: content }
@@ -1705,6 +1715,19 @@
         apiModelCustom.style.display = 'none';
       }
     });
+
+    // --- Глобальный троттлинг для OpenAI ---
+    let lastOpenAIRequestTime = 0;
+    const OPENAI_MIN_DELAY = 3000; // 3 секунды
+    async function throttledOpenAIFetch(url, options) {
+      const now = Date.now();
+      const wait = Math.max(0, OPENAI_MIN_DELAY - (now - lastOpenAIRequestTime));
+      if (wait > 0) {
+        await new Promise(res => setTimeout(res, wait));
+      }
+      lastOpenAIRequestTime = Date.now();
+      return fetchWithStatusLog(url, options);
+    }
   </script>
 </body>
 </html>
