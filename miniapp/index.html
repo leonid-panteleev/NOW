@@ -628,6 +628,7 @@
           <option value="gemini">Gemini</option>
           <option value="openai">ChatGPT (OpenAI)</option>
           <option value="deepseek">DeepSeek</option>
+          <option value="groq">Groq (Llama-3)</option>
           <option value="other">Другое</option>
         </select>
         <div id="api-endpoint-wrap" style="display:none;margin-top:0.7em;">
@@ -1183,6 +1184,29 @@
           if (fileData.choices && fileData.choices[0] && fileData.choices[0].message && fileData.choices[0].message.content) {
             selectedFile = fileData.choices[0].message.content.trim().toLowerCase();
           }
+        } else if (apiProvider === 'groq') {
+          // Groq prompt для выбора файла
+          const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
+          const fileRes = await fetchWithStatusLog('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + apiKey
+            },
+            body: JSON.stringify({
+              model: 'llama-3-70b-8192',
+              messages: [
+                { role: 'user', content: fileSelectionPrompt },
+                { role: 'user', content: content }
+              ],
+              max_tokens: 20,
+              temperature: 0
+            })
+          });
+          const fileData = await fileRes.json();
+          if (fileData.choices && fileData.choices[0] && fileData.choices[0].message && fileData.choices[0].message.content) {
+            selectedFile = fileData.choices[0].message.content.trim().toLowerCase();
+          }
         } else if (apiProvider === 'other') {
           if (!apiEndpoint) {
             chatbox.removeChild(chatbox.lastChild);
@@ -1335,6 +1359,43 @@
               reply = mainData.choices[0].message.content.trim();
             } else {
               console.error('Ошибка DeepSeek:', mainData.error || mainData);
+              appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
+              return;
+            }
+          } else if (apiProvider === 'groq') {
+            const mainRes = await fetchWithStatusLog('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey
+              },
+              body: JSON.stringify({
+                model: 'llama-3-70b-8192',
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: content }
+                ],
+                max_tokens: 512,
+                temperature: 0.7
+              })
+            });
+            const text = await mainRes.text();
+            if (!mainRes.ok) {
+              const devtoolsMsg = `index.html:1047 POST ${mainRes.url} ${mainRes.status} (${mainRes.statusText})`;
+              console.error(devtoolsMsg + '\n' + (new Error().stack || '') + '\n' + text);
+            }
+            let mainData;
+            try {
+              mainData = JSON.parse(text);
+            } catch (jsonErr) {
+              console.error('Ошибка парсинга JSON Groq:', jsonErr, text);
+              appendMessage('assistant', 'Ошибка: ' + jsonErr.message);
+              return;
+            }
+            if (mainData.choices && mainData.choices[0] && mainData.choices[0].message && mainData.choices[0].message.content) {
+              reply = mainData.choices[0].message.content.trim();
+            } else {
+              console.error('Ошибка Groq:', mainData.error || mainData);
               appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
               return;
             }
