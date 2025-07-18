@@ -743,6 +743,8 @@
         content.innerHTML = window.__consoleLogs.map(l => `<div style='margin-bottom:0.4em;'><span style='color:#7ecfff;'>[${l.type}]</span> <span style='color:#aaa;'>${l.time.slice(11,19)}</span> <span>${l.args.map(a => (typeof a==='object'?JSON.stringify(a):a)).join(' ')}</span></div>`).join('');
       }
       modal.classList.add('active');
+      // Прокрутка вниз
+      setTimeout(() => { content.scrollTop = content.scrollHeight; }, 0);
     }
     function closeConsoleLogModal() {
       document.getElementById('console-log-modal').classList.remove('active');
@@ -1123,12 +1125,15 @@
           try {
             const dataRes = await fetch(dataFiles[selectedFile]);
             if (!dataRes.ok) {
+              const text = await dataRes.text();
+              console.error('HTTP error при загрузке данных', dataRes.status, dataRes.statusText, text);
               throw new Error(`HTTP ${dataRes.status}: ${dataRes.statusText}`);
             }
             const loadedData = await dataRes.json();
             currentData = loadedData;
             dataLoaded = true;
           } catch (dataError) {
+            console.error('Ошибка загрузки данных:', dataError);
             chatbox.removeChild(chatbox.lastChild);
             appendMessage('assistant', 'Ошибка: ' + dataError.message);
             return;
@@ -1149,10 +1154,15 @@
                 ]
               })
             });
+            if (!mainRes.ok) {
+              const text = await mainRes.text();
+              console.error('HTTP error Gemini', mainRes.status, mainRes.statusText, text);
+            }
             const mainData = await mainRes.json();
             if (mainData.candidates && mainData.candidates[0] && mainData.candidates[0].content && mainData.candidates[0].content.parts && mainData.candidates[0].content.parts[0]) {
               reply = mainData.candidates[0].content.parts[0].text.trim();
             } else {
+              console.error('Ошибка Gemini:', mainData.error || mainData);
               appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
               return;
             }
@@ -1174,10 +1184,15 @@
                 temperature: 0.7
               })
             });
+            if (!mainRes.ok) {
+              const text = await mainRes.text();
+              console.error('HTTP error OpenAI', mainRes.status, mainRes.statusText, text);
+            }
             const mainData = await mainRes.json();
             if (mainData.choices && mainData.choices[0] && mainData.choices[0].message && mainData.choices[0].message.content) {
               reply = mainData.choices[0].message.content.trim();
             } else {
+              console.error('Ошибка OpenAI:', mainData.error || mainData);
               appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
               return;
             }
@@ -1199,10 +1214,15 @@
                 stream: false
               })
             });
+            if (!mainRes.ok) {
+              const text = await mainRes.text();
+              console.error('HTTP error DeepSeek', mainRes.status, mainRes.statusText, text);
+            }
             const mainData = await mainRes.json();
             if (mainData.choices && mainData.choices[0] && mainData.choices[0].message && mainData.choices[0].message.content) {
               reply = mainData.choices[0].message.content.trim();
             } else {
+              console.error('Ошибка DeepSeek:', mainData.error || mainData);
               appendMessage('assistant', 'Ошибка: ' + (mainData.error?.message || 'Неизвестная ошибка'));
               return;
             }
@@ -1223,10 +1243,15 @@
                   prompt: systemPrompt + "\n\n" + content
                 })
               });
+              if (!mainRes.ok) {
+                const text = await mainRes.text();
+                console.error('HTTP error Other API', mainRes.status, mainRes.statusText, text);
+              }
               const mainData = await mainRes.json();
               // Попытка получить текст из разных возможных полей
               reply = mainData.choices?.[0]?.text || mainData.choices?.[0]?.message?.content || mainData.result || JSON.stringify(mainData);
             } catch (err) {
+              console.error('Ошибка Other API:', err);
               appendMessage('assistant', 'Ошибка при обращении к вашему API: ' + err.message);
               return;
             }
@@ -1247,10 +1272,12 @@
           }
         } else {
           chatbox.removeChild(chatbox.lastChild);
+          console.error(`Не удалось определить нужные данные (${selectedFile})`);
           appendMessage('assistant', `Не удалось определить нужные данные (${selectedFile}). Попробуйте переформулировать запрос.`);
         }
       } catch (err) {
         chatbox.removeChild(chatbox.lastChild);
+        console.error('Ошибка в chatForm.onsubmit:', err);
         appendMessage('assistant', 'Ошибка: ' + err.message);
       }
     };
