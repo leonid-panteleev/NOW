@@ -1378,6 +1378,11 @@
               if (dotsDiv && dotsDiv.parentNode) dotsDiv.textContent = 'Ошибка: ' + jsonErr.message;
               return;
             }
+            // Удалить последнее сообщение ассистента, если это "Определяю нужные данные..."
+            const lastMsg = chatbox.lastElementChild;
+            if (lastMsg && lastMsg.classList.contains('assistant') && lastMsg.textContent.trim() === 'Определяю нужные данные...') {
+              chatbox.removeChild(lastMsg);
+            }
             // После получения ответа удаляем dotsDiv
             if (dotsDiv && dotsDiv.parentNode) dotsDiv.parentNode.removeChild(dotsDiv);
             if (mainData.choices && mainData.choices[0] && mainData.choices[0].message && mainData.choices[0].message.content) {
