@@ -636,6 +636,12 @@
           <label for="api-endpoint" style="font-size:0.98em;color:#fff;">Endpoint:</label>
           <input type="text" id="api-endpoint" placeholder="https://example.com/api" style="width:100%;padding:0.7em 1em;border-radius:10px;border:1px solid #333a;background:#181c22;color:#fff;font-size:0.89em;margin-top:0.2em;font-family:'Martian Mono','Roboto Mono',monospace;" />
         </div>
+        <!-- Выбор модели -->
+        <div id="api-model-wrap" style="margin-top:0.7em;">
+          <label for="api-model" style="font-size:0.98em;color:#fff;">Модель:</label>
+          <select id="api-model" style="width:100%;padding:0.7em 1em;border-radius:10px;border:1px solid #333a;background:#181c22;color:#fff;font-size:0.98em;margin-top:0.2em;font-family:'Martian Mono','Roboto Mono',monospace;"></select>
+          <input type="text" id="api-model-custom" placeholder="Введите model id" style="display:none;width:100%;padding:0.7em 1em;border-radius:10px;border:1px solid #333a;background:#181c22;color:#fff;font-size:0.89em;margin-top:0.2em;font-family:'Martian Mono','Roboto Mono',monospace;" />
+        </div>
         <!-- Скрытая кнопка для открытия логов -->
         <button id="show-console-btn" title="Show logs" aria-label="Show logs" style="position:absolute;left:12px;top:12px;width:22px;height:22px;opacity:0.18;z-index:10;background:none;border:none;cursor:pointer;padding:0;transition:opacity 0.2s;">🐞</button>
       </div>
@@ -841,6 +847,10 @@
     const showKeyBtn = document.getElementById('show-key-btn');
     const apikeyModal = document.getElementById('apikey-modal');
     const apikeySaveBtn = document.getElementById('apikey-save-btn');
+    const apiModelWrap = document.getElementById('api-model-wrap');
+    const apiModelSelect = document.getElementById('api-model');
+    const apiModelCustom = document.getElementById('api-model-custom');
+
     function openApikeyModal() {
       apikeyModal.classList.add('active');
       const apiKeyInput = document.getElementById('api-key');
@@ -851,6 +861,9 @@
       const apiProvider = document.getElementById('api-provider');
       const savedProvider = localStorage.getItem('api_provider') || 'gemini';
       apiProvider.value = savedProvider;
+      // Подставить сохранённую модель, если есть
+      const savedModel = localStorage.getItem('api_model') || '';
+      updateModelOptions(savedProvider, savedModel);
       // Endpoint
       const apiEndpointWrap = document.getElementById('api-endpoint-wrap');
       const apiEndpointInput = document.getElementById('api-endpoint');
@@ -884,6 +897,12 @@
       // Сохраняем выбранный провайдер
       const apiProvider = document.getElementById('api-provider').value;
       localStorage.setItem('api_provider', apiProvider);
+      // Сохраняем выбранную модель
+      let modelValue = apiModelSelect.value;
+      if (modelValue === 'other') {
+        modelValue = apiModelCustom.value.trim();
+      }
+      localStorage.setItem('api_model', modelValue);
       // Сохраняем endpoint если выбран 'Другое'
       const apiEndpointInput = document.getElementById('api-endpoint');
       if (apiProvider === 'other') {
@@ -1587,6 +1606,100 @@
 
     // --- Demo Fetch API with error handling ---
     // (удалено)
+
+    // Обновление списка моделей при смене провайдера
+    function updateModelOptions(provider, selectedModel) {
+      let options = [];
+      if (provider === 'groq') {
+        options = [
+          {id: 'llama-3-70b-8192', name: 'llama-3-70b-8192'},
+          {id: 'llama-3-8b-8192', name: 'llama-3-8b-8192'},
+          {id: 'llama-3.1-8b-instant', name: 'llama-3.1-8b-instant'},
+          {id: 'llama-3.3-70b-versatile', name: 'llama-3.3-70b-versatile'},
+          {id: 'distil-whisper-large-v3-en', name: 'distil-whisper-large-v3-en'},
+          {id: 'gemma2-9b-it', name: 'gemma2-9b-it'},
+          {id: 'meta-llama/llama-guard-4-12b', name: 'meta-llama/llama-guard-4-12b'},
+          {id: 'whisper-large-v3', name: 'whisper-large-v3'},
+          {id: 'whisper-large-v3-turbo', name: 'whisper-large-v3-turbo'},
+          {id: 'deepseek-r1-distill-llama-70b', name: 'deepseek-r1-distill-llama-70b'},
+          {id: 'meta-llama/llama-4-maverick-17b-128e-instruct', name: 'meta-llama/llama-4-maverick-17b-128e-instruct'},
+          {id: 'meta-llama/llama-4-scout-17b-16e-instruct', name: 'meta-llama/llama-4-scout-17b-16e-instruct'},
+          {id: 'meta-llama/llama-prompt-guard-2-22m', name: 'meta-llama/llama-prompt-guard-2-22m'},
+          {id: 'meta-llama/llama-prompt-guard-2-86m', name: 'meta-llama/llama-prompt-guard-2-86m'},
+          {id: 'mistral-saba-24b', name: 'mistral-saba-24b'},
+          {id: 'moonshotai/kimi-k2-instruct', name: 'moonshotai/kimi-k2-instruct'},
+          {id: 'playai-tts', name: 'playai-tts'},
+          {id: 'playai-tts-arabic', name: 'playai-tts-arabic'},
+          {id: 'qwen/qwen3-32b', name: 'qwen/qwen3-32b'},
+          {id: 'other', name: 'Другая...'}
+        ];
+      } else if (provider === 'mistral') {
+        options = [
+          {id: 'mistral-large-latest', name: 'mistral-large-latest'},
+          {id: 'other', name: 'Другая...'}
+        ];
+      } else if (provider === 'openai') {
+        options = [
+          {id: 'gpt-3.5-turbo', name: 'gpt-3.5-turbo'},
+          {id: 'gpt-4', name: 'gpt-4'},
+          {id: 'other', name: 'Другая...'}
+        ];
+      } else if (provider === 'deepseek') {
+        options = [
+          {id: 'deepseek-chat', name: 'deepseek-chat'},
+          {id: 'other', name: 'Другая...'}
+        ];
+      } else if (provider === 'gemini') {
+        options = [
+          {id: 'gemini-2.0-flash', name: 'gemini-2.0-flash'},
+          {id: 'other', name: 'Другая...'}
+        ];
+      } else {
+        options = [
+          {id: 'other', name: 'Другая...'}
+        ];
+      }
+      apiModelSelect.innerHTML = '';
+      options.forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt.id;
+        o.textContent = opt.name;
+        apiModelSelect.appendChild(o);
+      });
+      // Выбрать сохранённую или первую
+      if (selectedModel && options.some(opt => opt.id === selectedModel)) {
+        apiModelSelect.value = selectedModel;
+      } else {
+        apiModelSelect.value = options[0].id;
+      }
+      // Показать/скрыть input для custom model
+      if (apiModelSelect.value === 'other') {
+        apiModelCustom.style.display = '';
+        apiModelCustom.value = selectedModel && selectedModel !== 'other' ? selectedModel : '';
+      } else {
+        apiModelCustom.style.display = 'none';
+      }
+    }
+    // При смене провайдера — обновить список моделей
+    document.getElementById('api-provider').addEventListener('change', function() {
+      updateModelOptions(this.value, '');
+      const apiEndpointWrap = document.getElementById('api-endpoint-wrap');
+      if (this.value === 'other') {
+        apiEndpointWrap.style.display = '';
+      } else {
+        apiEndpointWrap.style.display = 'none';
+      }
+    });
+    // При смене модели — показать input если выбрана "Другая"
+    apiModelSelect.addEventListener('change', function() {
+      if (this.value === 'other') {
+        apiModelCustom.style.display = '';
+        apiModelCustom.value = '';
+        apiModelCustom.focus();
+      } else {
+        apiModelCustom.style.display = 'none';
+      }
+    });
   </script>
 </body>
 </html>
