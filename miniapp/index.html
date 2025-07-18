@@ -871,6 +871,12 @@
       // Подставить сохранённую модель, если есть
       const savedModel = localStorage.getItem('api_model') || '';
       updateModelOptions(savedProvider, savedModel);
+      // Если кастомная модель, показать input и подставить значение
+      if (savedModel && !Array.from(apiModelSelect.options).some(opt => opt.value === savedModel)) {
+        apiModelSelect.value = 'other';
+        apiModelCustom.style.display = '';
+        apiModelCustom.value = savedModel;
+      }
       // Endpoint
       const apiEndpointWrap = document.getElementById('api-endpoint-wrap');
       const apiEndpointInput = document.getElementById('api-endpoint');
@@ -1822,6 +1828,13 @@
         alert('Не удалось получить данные из буфера обмена.');
       }
     };
+
+    // При сохранении кастомной модели сохранять отдельно
+    apiModelCustom.addEventListener('input', function() {
+      if (apiModelSelect.value === 'other') {
+        localStorage.setItem('api_model_custom', this.value.trim());
+      }
+    });
   </script>
 </body>
 </html>
