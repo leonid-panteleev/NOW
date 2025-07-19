@@ -1,0 +1,59 @@
+{
+  "city": "Saint Petersburg",
+  "type": "rentals",
+  "data": [
+    {
+      "id": "rs1",
+      "name": "Аренда квартиры на Невском",
+      "type": "apartment",
+      "location": "Невский проспект, 45",
+      "rooms": 1,
+      "area": 45,
+      "price_range": "60000-90000",
+      "currency": "RUB/месяц",
+      "description": "Студия в историческом центре, с видом на Невский",
+      "contact": "+7 (812) 111-22-33",
+      "rating": 4.8,
+      "hash": "c3d4e5f6a1b2"
+    },
+    {
+      "id": "rs2",
+      "name": "Аренда автомобиля",
+      "type": "car",
+      "model": "Volkswagen Golf",
+      "year": 2021,
+      "price_range": "2500-4000",
+      "currency": "RUB/день",
+      "description": "Экономичный хэтчбек для городских поездок",
+      "contact": "+7 (812) 222-33-44",
+      "rating": 4.7,
+      "hash": "d4e5f6a1b2c3"
+    },
+    {
+      "id": "rs3",
+      "name": "Аренда офиса в центре",
+      "type": "office",
+      "location": "ул. Марата, 15",
+      "area": 80,
+      "price_range": "120000-160000",
+      "currency": "RUB/месяц",
+      "description": "Уютный офис в историческом здании, с мебелью",
+      "contact": "+7 (812) 333-44-55",
+      "rating": 4.6,
+      "hash": "e5f6a1b2c3d4"
+    },
+    {
+      "id": "rs4",
+      "name": "Аренда лодки",
+      "type": "boat",
+      "model": "Прогулочная лодка",
+      "capacity": 6,
+      "price_range": "3000-5000",
+      "currency": "RUB/час",
+      "description": "Прогулки по Неве и каналам, с капитаном",
+      "contact": "+7 (812) 444-55-66",
+      "rating": 4.9,
+      "hash": "f6a1b2c3d4e5"
+    }
+  ]
+} 

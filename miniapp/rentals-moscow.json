@@ -1,0 +1,58 @@
+{
+  "city": "Moscow",
+  "type": "rentals",
+  "data": [
+    {
+      "id": "rm1",
+      "name": "Аренда квартиры в центре",
+      "type": "apartment",
+      "location": "ул. Тверская, 15",
+      "rooms": 2,
+      "area": 65,
+      "price_range": "80000-120000",
+      "currency": "RUB/месяц",
+      "description": "Уютная квартира в центре, меблированная, с ремонтом",
+      "contact": "+7 (495) 111-22-33",
+      "rating": 4.7,
+      "hash": "e5f6a1b2c3d4"
+    },
+    {
+      "id": "rm2",
+      "name": "Аренда автомобиля",
+      "type": "car",
+      "model": "Toyota Camry",
+      "year": 2022,
+      "price_range": "3000-5000",
+      "currency": "RUB/день",
+      "description": "Комфортный седан для поездок по городу и за город",
+      "contact": "+7 (495) 222-33-44",
+      "rating": 4.8,
+      "hash": "f6a1b2c3d4e5"
+    },
+    {
+      "id": "rm3",
+      "name": "Аренда офиса",
+      "type": "office",
+      "location": "ул. Новый Арбат, 25",
+      "area": 120,
+      "price_range": "150000-200000",
+      "currency": "RUB/месяц",
+      "description": "Современный офис в бизнес-центре, с мебелью и техникой",
+      "contact": "+7 (495) 333-44-55",
+      "rating": 4.6,
+      "hash": "a1b2c3d4e5f6"
+    },
+    {
+      "id": "rm4",
+      "name": "Аренда велосипеда",
+      "type": "bicycle",
+      "model": "Горный велосипед",
+      "price_range": "500-800",
+      "currency": "RUB/день",
+      "description": "Качественные велосипеды для прогулок по паркам",
+      "contact": "+7 (495) 444-55-66",
+      "rating": 4.5,
+      "hash": "b2c3d4e5f6a1"
+    }
+  ]
+} 

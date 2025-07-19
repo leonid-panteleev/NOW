@@ -683,7 +683,7 @@
     <div class="user" id="user-info">Loading user info...</div>
     <div class="chatbox" id="chatbox"></div>
     <form id="chat-form" class="input-row" autocomplete="off">
-      <div class="input-wrapper" style="margin-left:0.7em;">
+      <div class="input-wrapper">
         <textarea id="user-input" placeholder="Например: забронируй столик в ресторане на вечер" required rows="2"></textarea>
         <button type="submit" id="send-btn" title="Send">
           <span class="material-symbols-outlined send-icon">send</span>
@@ -1018,8 +1018,19 @@
       'events-moscow': '/NOW/miniapp/events-moscow.json',
       'events-spb': '/NOW/miniapp/events-spb.json',
       'people-moscow': '/NOW/miniapp/people-moscow.json',
+      'people-spb': '/NOW/miniapp/people-spb.json',
       'contractors-moscow': '/NOW/miniapp/contractors-moscow.json',
-      'services-moscow': '/NOW/miniapp/services-moscow.json'
+      'contractors-spb': '/NOW/miniapp/contractors-spb.json',
+      'services-moscow': '/NOW/miniapp/services-moscow.json',
+      'services-spb': '/NOW/miniapp/services-spb.json',
+      'rentals-moscow': '/NOW/miniapp/rentals-moscow.json',
+      'rentals-spb': '/NOW/miniapp/rentals-spb.json',
+      'property-buy-moscow': '/NOW/miniapp/property-buy-moscow.json',
+      'property-buy-spb': '/NOW/miniapp/property-buy-spb.json',
+      'tickets-moscow': '/NOW/miniapp/tickets-moscow.json',
+      'tickets-spb': '/NOW/miniapp/tickets-spb.json',
+      'appointments-moscow': '/NOW/miniapp/appointments-moscow.json',
+      'appointments-spb': '/NOW/miniapp/appointments-spb.json'
     };
 
     let currentData = {};
@@ -1158,7 +1169,7 @@
         appendMessage('assistant', 'Определяю нужные данные...');
         try {
           // 1. Выбор файла
-          const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., \"events-moscow\") without .json extension.`;
+          const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg)\n- people-moscow.json (professionals in Moscow)\n- people-spb.json (professionals in Saint Petersburg)\n- contractors-moscow.json (construction/repair services in Moscow)\n- contractors-spb.json (construction/repair services in Saint Petersburg)\n- services-moscow.json (various services in Moscow)\n- services-spb.json (various services in Saint Petersburg)\n- rentals-moscow.json (rental services in Moscow - apartments, cars, offices)\n- rentals-spb.json (rental services in Saint Petersburg - apartments, cars, offices, boats)\n- property-buy-moscow.json (property for sale in Moscow)\n- property-buy-spb.json (property for sale in Saint Petersburg)\n- tickets-moscow.json (event tickets in Moscow)\n- tickets-spb.json (event tickets in Saint Petersburg)\n- appointments-moscow.json (appointments with specialists in Moscow)\n- appointments-spb.json (appointments with specialists in Saint Petersburg)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
           const fileRes = await throttledOpenAIFetchWithDots('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -1212,7 +1223,7 @@
             dotsDiv.textContent = '...';
             chatbox.appendChild(dotsDiv);
             chatbox.scrollTop = chatbox.scrollHeight;
-            const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n\nWhen the user confirms booking, respond as before.`;
+            const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n- Renting apartments, cars, offices, and other items\n- Buying and selling property\n- Purchasing event tickets\n- Booking appointments with specialists and professionals\n\nIMPORTANT: For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n\nWhen the user confirms booking, respond as before.`;
             let reply = '';
             const mainRes = await throttledOpenAIFetchWithDots('https://api.openai.com/v1/chat/completions', {
               method: 'POST',
@@ -1287,7 +1298,7 @@
         // --- Определяем нужный файл через выбранное API ---
         let selectedFile = '';
         if (apiProvider === 'gemini') {
-        const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
+        const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg)\n- people-moscow.json (professionals in Moscow)\n- people-spb.json (professionals in Saint Petersburg)\n- contractors-moscow.json (construction/repair services in Moscow)\n- contractors-spb.json (construction/repair services in Saint Petersburg)\n- services-moscow.json (various services in Moscow)\n- services-spb.json (various services in Saint Petersburg)\n- rentals-moscow.json (rental services in Moscow - apartments, cars, offices)\n- rentals-spb.json (rental services in Saint Petersburg - apartments, cars, offices, boats)\n- property-buy-moscow.json (property for sale in Moscow)\n- property-buy-spb.json (property for sale in Saint Petersburg)\n- tickets-moscow.json (event tickets in Moscow)\n- tickets-spb.json (event tickets in Saint Petersburg)\n- appointments-moscow.json (appointments with specialists in Moscow)\n- appointments-spb.json (appointments with specialists in Saint Petersburg)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
           const fileRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey, {
           method: 'POST',
           headers: {
@@ -1305,7 +1316,7 @@
           }
         } else if (apiProvider === 'deepseek') {
           // DeepSeek prompt для выбора файла
-          const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
+          const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg)\n- people-moscow.json (professionals in Moscow)\n- people-spb.json (professionals in Saint Petersburg)\n- contractors-moscow.json (construction/repair services in Moscow)\n- contractors-spb.json (construction/repair services in Saint Petersburg)\n- services-moscow.json (various services in Moscow)\n- services-spb.json (various services in Saint Petersburg)\n- rentals-moscow.json (rental services in Moscow - apartments, cars, offices)\n- rentals-spb.json (rental services in Saint Petersburg - apartments, cars, offices, boats)\n- property-buy-moscow.json (property for sale in Moscow)\n- property-buy-spb.json (property for sale in Saint Petersburg)\n- tickets-moscow.json (event tickets in Moscow)\n- tickets-spb.json (event tickets in Saint Petersburg)\n- appointments-moscow.json (appointments with specialists in Moscow)\n- appointments-spb.json (appointments with specialists in Saint Petersburg)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
           const fileRes = await fetchWithStatusLog('https://api.deepseek.com/chat/completions', {
             method: 'POST',
             headers: {
@@ -1329,7 +1340,7 @@
           }
         } else if (apiProvider === 'groq') {
           // Groq prompt для выбора файла
-          const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
+          const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg)\n- people-moscow.json (professionals in Moscow)\n- people-spb.json (professionals in Saint Petersburg)\n- contractors-moscow.json (construction/repair services in Moscow)\n- contractors-spb.json (construction/repair services in Saint Petersburg)\n- services-moscow.json (various services in Moscow)\n- services-spb.json (various services in Saint Petersburg)\n- rentals-moscow.json (rental services in Moscow - apartments, cars, offices)\n- rentals-spb.json (rental services in Saint Petersburg - apartments, cars, offices, boats)\n- property-buy-moscow.json (property for sale in Moscow)\n- property-buy-spb.json (property for sale in Saint Petersburg)\n- tickets-moscow.json (event tickets in Moscow)\n- tickets-spb.json (event tickets in Saint Petersburg)\n- appointments-moscow.json (appointments with specialists in Moscow)\n- appointments-spb.json (appointments with specialists in Saint Petersburg)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
           const fileRes = await fetchWithStatusLog('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -1352,7 +1363,7 @@
           }
         } else if (apiProvider === 'mistral') {
           // Mistral prompt для выбора файла
-          const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg) \n- people-moscow.json (professionals in Moscow)\n- contractors-moscow.json (construction/repair services in Moscow)\n- services-moscow.json (various services in Moscow)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
+          const fileSelectionPrompt = `You are a data file selector. Based on the user's request, determine which JSON file should be loaded.\n\nAvailable files:\n- events-moscow.json (events in Moscow)\n- events-spb.json (events in Saint Petersburg)\n- people-moscow.json (professionals in Moscow)\n- people-spb.json (professionals in Saint Petersburg)\n- contractors-moscow.json (construction/repair services in Moscow)\n- contractors-spb.json (construction/repair services in Saint Petersburg)\n- services-moscow.json (various services in Moscow)\n- services-spb.json (various services in Saint Petersburg)\n- rentals-moscow.json (rental services in Moscow - apartments, cars, offices)\n- rentals-spb.json (rental services in Saint Petersburg - apartments, cars, offices, boats)\n- property-buy-moscow.json (property for sale in Moscow)\n- property-buy-spb.json (property for sale in Saint Petersburg)\n- tickets-moscow.json (event tickets in Moscow)\n- tickets-spb.json (event tickets in Saint Petersburg)\n- appointments-moscow.json (appointments with specialists in Moscow)\n- appointments-spb.json (appointments with specialists in Saint Petersburg)\n\nRespond ONLY with the filename (e.g., "events-moscow") without .json extension.`;
           const fileRes = await fetchWithStatusLog('https://api.mistral.ai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -1414,7 +1425,7 @@
           }
           chatbox.removeChild(chatbox.lastChild);
           // --- Основной ответ через выбранное API ---
-          const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n\nIMPORTANT: For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n\nWhen the user confirms booking, respond as before.`;
+          const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n- Renting apartments, cars, offices, and other items\n- Buying and selling property\n- Purchasing event tickets\n- Booking appointments with specialists and professionals\n\nIMPORTANT: For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n\nWhen the user confirms booking, respond as before.`;
           let reply = '';
           if (apiProvider === 'gemini') {
             const mainRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey, {

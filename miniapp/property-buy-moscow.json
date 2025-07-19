@@ -1,0 +1,61 @@
+{
+  "city": "Moscow",
+  "type": "property-buy",
+  "data": [
+    {
+      "id": "pbm1",
+      "name": "Квартира в новостройке",
+      "type": "apartment",
+      "location": "ул. Мичуринский проспект, 15",
+      "rooms": 3,
+      "area": 85,
+      "price_range": "12000000-15000000",
+      "currency": "RUB",
+      "description": "Современная квартира в новостройке, с отделкой, парковка",
+      "contact": "+7 (495) 111-22-33",
+      "rating": 4.7,
+      "hash": "a1b2c3d4e5f8"
+    },
+    {
+      "id": "pbm2",
+      "name": "Дом в Подмосковье",
+      "type": "house",
+      "location": "пос. Барвиха, 25 км от МКАД",
+      "rooms": 5,
+      "area": 200,
+      "land_area": 600,
+      "price_range": "25000000-35000000",
+      "currency": "RUB",
+      "description": "Загородный дом с участком, гараж, баня",
+      "contact": "+7 (495) 222-33-44",
+      "rating": 4.8,
+      "hash": "b2c3d4e5f8a1"
+    },
+    {
+      "id": "pbm3",
+      "name": "Студия в центре",
+      "type": "studio",
+      "location": "ул. Арбат, 8",
+      "area": 35,
+      "price_range": "8000000-10000000",
+      "currency": "RUB",
+      "description": "Студия в историческом центре, с ремонтом",
+      "contact": "+7 (495) 333-44-55",
+      "rating": 4.6,
+      "hash": "c3d4e5f8a1b2"
+    },
+    {
+      "id": "pbm4",
+      "name": "Коммерческое помещение",
+      "type": "commercial",
+      "location": "ул. Тверская, 20",
+      "area": 150,
+      "price_range": "20000000-25000000",
+      "currency": "RUB",
+      "description": "Торговое помещение на первой линии, с отдельным входом",
+      "contact": "+7 (495) 444-55-66",
+      "rating": 4.5,
+      "hash": "d4e5f8a1b2c3"
+    }
+  ]
+} 

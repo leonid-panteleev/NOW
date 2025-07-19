@@ -1,0 +1,45 @@
+{
+  "city": "Saint Petersburg",
+  "type": "people",
+  "data": [
+    {
+      "id": "sp1",
+      "name": "Мария Иванова",
+      "profession": "Фотограф",
+      "specialization": "Портретная фотография",
+      "experience": "6 лет",
+      "rate": "12000-20000",
+      "currency": "RUB",
+      "description": "Студийная и уличная фотография, семейные фотосессии",
+      "contact": "+7 (812) 123-45-67",
+      "rating": 4.9,
+      "hash": "a1b2c3d4e5f6"
+    },
+    {
+      "id": "sp2",
+      "name": "Дмитрий Волков",
+      "profession": "Репетитор",
+      "specialization": "Английский язык",
+      "experience": "10 лет",
+      "rate": "1800-2500",
+      "currency": "RUB",
+      "description": "Подготовка к IELTS, TOEFL, разговорный английский",
+      "contact": "+7 (812) 234-56-78",
+      "rating": 4.8,
+      "hash": "b2c3d4e5f6a1"
+    },
+    {
+      "id": "sp3",
+      "name": "Ольга Смирнова",
+      "profession": "Дизайнер",
+      "specialization": "Графический дизайн",
+      "experience": "7 лет",
+      "rate": "2500-4000",
+      "currency": "RUB",
+      "description": "Логотипы, брендинг, веб-дизайн, полиграфия",
+      "contact": "+7 (812) 345-67-89",
+      "rating": 4.7,
+      "hash": "c3d4e5f6a1b2"
+    }
+  ]
+} 
