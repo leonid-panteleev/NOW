@@ -1055,38 +1055,16 @@
     function extractGptComment(reply, items) {
       if (!reply) return '';
       let text = reply;
-      // Удаляем все строки, которые содержат hash: <hash>
+      // Удаляем только строки с хешами, но оставляем полезную информацию
       const lines = text.split('\n');
       const hashPattern = /hash:\s*[a-fA-F0-9]{8,}/;
-      const ignorePatterns = [
-        /^\s*[-*•\d\.]+/, // markdown-списки, эмодзи, цифры
-        /^\s*\*\*/, // жирные markdown
-        /^\s*Описание:/i,
-        /^\s*Место:/i,
-        /^\s*Дата:/i,
-        /^\s*Время:/i,
-        /^\s*Цена:/i,
-        /^\s*Контакт:/i,
-        /^\s*Рейтинг:/i,
-        /^\s*Услуга:/i,
-        /^\s*Специализация:/i,
-        /^\s*Опыт:/i
-      ];
+      
       let filtered = lines.filter(line => {
         if (!line.trim()) return false;
         if (hashPattern.test(line)) return false;
-        if (ignorePatterns.some(re => re.test(line))) return false;
-        if (Array.isArray(items)) {
-          for (const item of items) {
-            if (item.name && line.includes(item.name)) return false;
-            if (item.description && line.includes(item.description)) return false;
-            if (item.venue && line.includes(item.venue)) return false;
-            if (item.price_range && line.includes(item.price_range)) return false;
-            if (item.currency && line.includes(item.currency)) return false;
-          }
-        }
         return true;
       });
+      
       const comment = filtered.join(' ').replace(/\s+/g, ' ').trim();
       if (comment.length > 10) return comment;
       return '';
@@ -1112,15 +1090,37 @@
         card.className = 'booking-card';
         card.style = 'background:#23272f;margin:1em 0;padding:1em;border-radius:18px;box-shadow:0 2px 8px #0004;position:relative;';
         let html = `<strong style="color:#7ecfff;">${item.name}</strong><br>`;
-        if (item.venue) html += `Место: ${item.venue}<br>`;
-        if (item.date) html += `Дата: ${item.date}<br>`;
-        if (item.time) html += `Время: ${item.time}<br>`;
-        if (item.price_range) html += `Цена: ${item.price_range} ${item.currency || 'RUB'}<br>`;
-        if (item.specialization) html += `Специализация: ${item.specialization}<br>`;
-        if (item.experience) html += `Опыт: ${item.experience}<br>`;
-        if (item.rating) html += `Рейтинг: ${item.rating}<br>`;
-        if (item.contact) html += `Контакт: ${item.contact}<br>`;
-        if (item.description) html += `Описание: ${item.description}<br>`;
+        
+        // Добавляем все доступные поля из JSON
+        if (item.venue) html += `📍 Место: ${item.venue}<br>`;
+        if (item.location) html += `📍 Адрес: ${item.location}<br>`;
+        if (item.date) html += `📅 Дата: ${item.date}<br>`;
+        if (item.time) html += `🕐 Время: ${item.time}<br>`;
+        if (item.price_range) html += `💰 Цена: ${item.price_range} ${item.currency || 'RUB'}<br>`;
+        if (item.rate) html += `💰 Стоимость: ${item.rate} ${item.currency || 'RUB'}<br>`;
+        if (item.specialization) html += `🎯 Специализация: ${item.specialization}<br>`;
+        if (item.profession) html += `👨‍💼 Профессия: ${item.profession}<br>`;
+        if (item.service) html += `🔧 Услуга: ${item.service}<br>`;
+        if (item.experience) html += `⏱️ Опыт: ${item.experience}<br>`;
+        if (item.rating) html += `⭐ Рейтинг: ${item.rating}<br>`;
+        if (item.contact) html += `📞 Контакт: ${item.contact}<br>`;
+        if (item.description) html += `📝 Описание: ${item.description}<br>`;
+        if (item.rooms) html += `🏠 Комнат: ${item.rooms}<br>`;
+        if (item.area) html += `📐 Площадь: ${item.area} м²<br>`;
+        if (item.land_area) html += `🌳 Участок: ${item.land_area} м²<br>`;
+        if (item.model) html += `🚗 Модель: ${item.model}<br>`;
+        if (item.year) html += `📅 Год: ${item.year}<br>`;
+        if (item.capacity) html += `👥 Вместимость: ${item.capacity} чел.<br>`;
+        if (item.available_seats) html += `💺 Свободных мест: ${item.available_seats}<br>`;
+        if (item.delivery_time) html += `⚡ Время доставки: ${item.delivery_time}<br>`;
+        if (item.membership) html += `💳 Абонемент: ${item.membership} ${item.currency || 'RUB'}<br>`;
+        if (item.clinic) html += `🏥 Клиника: ${item.clinic}<br>`;
+        if (item.salon) html += `💇 Салон: ${item.salon}<br>`;
+        if (item.office) html += `🏢 Офис: ${item.office}<br>`;
+        if (item.gym) html += `💪 Зал: ${item.gym}<br>`;
+        if (item.center) html += `🏢 Центр: ${item.center}<br>`;
+        if (item.event) html += `🎭 Мероприятие: ${item.event}<br>`;
+        
         card.innerHTML = html;
         // Кнопка "Выбрать"
         const selectBtn = document.createElement('button');
@@ -1223,7 +1223,7 @@
             dotsDiv.textContent = '...';
             chatbox.appendChild(dotsDiv);
             chatbox.scrollTop = chatbox.scrollHeight;
-            const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n- Renting apartments, cars, offices, and other items\n- Buying and selling property\n- Purchasing event tickets\n- Booking appointments with specialists and professionals\n\nIMPORTANT: For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n\nWhen the user confirms booking, respond as before.`;
+            const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n- Renting apartments, cars, offices, and other items\n- Buying and selling property\n- Purchasing event tickets\n- Booking appointments with specialists and professionals\n\nIMPORTANT INSTRUCTIONS:\n1. For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n2. Include relevant details from the data such as addresses, descriptions, prices, ratings, contact information, and other useful information.\n3. Provide helpful context and explanations about the options.\n4. When the user confirms booking, respond as before.\n\nMake your responses informative and helpful, including all relevant details that would help the user make a decision.`;
             let reply = '';
             const mainRes = await throttledOpenAIFetchWithDots('https://api.openai.com/v1/chat/completions', {
               method: 'POST',
@@ -1425,7 +1425,7 @@
           }
           chatbox.removeChild(chatbox.lastChild);
           // --- Основной ответ через выбранное API ---
-          const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n- Renting apartments, cars, offices, and other items\n- Buying and selling property\n- Purchasing event tickets\n- Booking appointments with specialists and professionals\n\nIMPORTANT: For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n\nWhen the user confirms booking, respond as before.`;
+          const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n- Renting apartments, cars, offices, and other items\n- Buying and selling property\n- Purchasing event tickets\n- Booking appointments with specialists and professionals\n\nIMPORTANT INSTRUCTIONS:\n1. For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n2. Include relevant details from the data such as addresses, descriptions, prices, ratings, contact information, and other useful information.\n3. Provide helpful context and explanations about the options.\n4. When the user confirms booking, respond as before.\n\nMake your responses informative and helpful, including all relevant details that would help the user make a decision.`;
           let reply = '';
           if (apiProvider === 'gemini') {
             const mainRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey, {
@@ -1660,17 +1660,39 @@
     const bookingAgreeCheckbox = document.getElementById('booking-agree-checkbox');
     const bookingConfirmBtn = document.getElementById('booking-confirm-btn');
     function openBookingDetailsModal(item) {
-      // Заполнить детали
-      let html = `<strong style='color:#7ecfff;font-size:1.15em;'>${item.name}</strong><br>`;
-      if (item.venue) html += `Место: ${item.venue}<br>`;
-      if (item.date) html += `Дата: ${item.date}<br>`;
-      if (item.time) html += `Время: ${item.time}<br>`;
-      if (item.price_range) html += `Цена: ${item.price_range} ${item.currency || 'RUB'}<br>`;
-      if (item.specialization) html += `Специализация: ${item.specialization}<br>`;
-      if (item.experience) html += `Опыт: ${item.experience}<br>`;
-      if (item.rating) html += `Рейтинг: ${item.rating}<br>`;
-      if (item.contact) html += `Контакт: ${item.contact}<br>`;
-      if (item.description) html += `Описание: ${item.description}<br>`;
+      // Заполнить детали с расширенной информацией
+      let html = `<strong style='color:#7ecfff;font-size:1.15em;'>${item.name}</strong><br><br>`;
+      
+      // Добавляем все доступные поля из JSON с эмодзи
+      if (item.venue) html += `📍 <strong>Место:</strong> ${item.venue}<br>`;
+      if (item.location) html += `📍 <strong>Адрес:</strong> ${item.location}<br>`;
+      if (item.date) html += `📅 <strong>Дата:</strong> ${item.date}<br>`;
+      if (item.time) html += `🕐 <strong>Время:</strong> ${item.time}<br>`;
+      if (item.price_range) html += `💰 <strong>Цена:</strong> ${item.price_range} ${item.currency || 'RUB'}<br>`;
+      if (item.rate) html += `💰 <strong>Стоимость:</strong> ${item.rate} ${item.currency || 'RUB'}<br>`;
+      if (item.specialization) html += `🎯 <strong>Специализация:</strong> ${item.specialization}<br>`;
+      if (item.profession) html += `👨‍💼 <strong>Профессия:</strong> ${item.profession}<br>`;
+      if (item.service) html += `🔧 <strong>Услуга:</strong> ${item.service}<br>`;
+      if (item.experience) html += `⏱️ <strong>Опыт:</strong> ${item.experience}<br>`;
+      if (item.rating) html += `⭐ <strong>Рейтинг:</strong> ${item.rating}<br>`;
+      if (item.contact) html += `📞 <strong>Контакт:</strong> ${item.contact}<br>`;
+      if (item.description) html += `📝 <strong>Описание:</strong> ${item.description}<br>`;
+      if (item.rooms) html += `🏠 <strong>Комнат:</strong> ${item.rooms}<br>`;
+      if (item.area) html += `📐 <strong>Площадь:</strong> ${item.area} м²<br>`;
+      if (item.land_area) html += `🌳 <strong>Участок:</strong> ${item.land_area} м²<br>`;
+      if (item.model) html += `🚗 <strong>Модель:</strong> ${item.model}<br>`;
+      if (item.year) html += `📅 <strong>Год:</strong> ${item.year}<br>`;
+      if (item.capacity) html += `👥 <strong>Вместимость:</strong> ${item.capacity} чел.<br>`;
+      if (item.available_seats) html += `💺 <strong>Свободных мест:</strong> ${item.available_seats}<br>`;
+      if (item.delivery_time) html += `⚡ <strong>Время доставки:</strong> ${item.delivery_time}<br>`;
+      if (item.membership) html += `💳 <strong>Абонемент:</strong> ${item.membership} ${item.currency || 'RUB'}<br>`;
+      if (item.clinic) html += `🏥 <strong>Клиника:</strong> ${item.clinic}<br>`;
+      if (item.salon) html += `💇 <strong>Салон:</strong> ${item.salon}<br>`;
+      if (item.office) html += `🏢 <strong>Офис:</strong> ${item.office}<br>`;
+      if (item.gym) html += `💪 <strong>Зал:</strong> ${item.gym}<br>`;
+      if (item.center) html += `🏢 <strong>Центр:</strong> ${item.center}<br>`;
+      if (item.event) html += `🎭 <strong>Мероприятие:</strong> ${item.event}<br>`;
+      
       bookingDetailsContent.innerHTML = html;
       bookingAgreeCheckbox.checked = false;
       bookingConfirmBtn.disabled = true;
