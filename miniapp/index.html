@@ -1055,13 +1055,39 @@
     function extractGptComment(reply, items) {
       if (!reply) return '';
       let text = reply;
-      // Удаляем только строки с хешами, но оставляем полезную информацию
+      // Удаляем строки с хешами и технические поля из JSON
       const lines = text.split('\n');
       const hashPattern = /hash:\s*[a-fA-F0-9]{8,}/;
+      const ignorePatterns = [
+        /^\s*[-*•\d\.]+/, // markdown-списки, эмодзи, цифры
+        /^\s*\*\*/, // жирные markdown
+        /^\s*id:\s*/i, // технические поля
+        /^\s*type:\s*/i,
+        /^\s*city:\s*/i,
+        /^\s*data:\s*/i,
+        /^\s*\[.*\]/, // массивы
+        /^\s*\{.*\}/, // объекты
+        /^\s*"id":\s*/i,
+        /^\s*"type":\s*/i,
+        /^\s*"city":\s*/i,
+        /^\s*"hash":\s*/i
+      ];
       
       let filtered = lines.filter(line => {
         if (!line.trim()) return false;
         if (hashPattern.test(line)) return false;
+        if (ignorePatterns.some(re => re.test(line))) return false;
+        
+        // Удаляем строки, которые содержат только технические данные из JSON
+        if (Array.isArray(items)) {
+          for (const item of items) {
+            // Удаляем строки, которые содержат только технические поля
+            if (line.includes(`"${item.name}"`) && !line.includes(':')) return false;
+            if (line.includes(`"${item.id}"`)) return false;
+            if (line.includes(`"${item.hash}"`)) return false;
+          }
+        }
+        
         return true;
       });
       
@@ -1223,7 +1249,7 @@
             dotsDiv.textContent = '...';
             chatbox.appendChild(dotsDiv);
             chatbox.scrollTop = chatbox.scrollHeight;
-            const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n- Renting apartments, cars, offices, and other items\n- Buying and selling property\n- Purchasing event tickets\n- Booking appointments with specialists and professionals\n\nIMPORTANT INSTRUCTIONS:\n1. For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n2. Include relevant details from the data such as addresses, descriptions, prices, ratings, contact information, and other useful information.\n3. Provide helpful context and explanations about the options.\n4. When the user confirms booking, respond as before.\n\nMake your responses informative and helpful, including all relevant details that would help the user make a decision.`;
+            const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n- Renting apartments, cars, offices, and other items\n- Buying and selling property\n- Purchasing event tickets\n- Booking appointments with specialists and professionals\n\nIMPORTANT INSTRUCTIONS:\n1. For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n2. Include relevant details from the data such as addresses, descriptions, prices, ratings, contact information, and other useful information.\n3. Provide helpful context and explanations about the options.\n4. DO NOT include technical JSON fields like "id", "type", "city", "hash" in your responses.\n5. Focus on user-friendly information like names, addresses, prices, descriptions, ratings, contact details.\n6. When the user confirms booking, respond as before.\n\nMake your responses informative and helpful, including all relevant details that would help the user make a decision.`;
             let reply = '';
             const mainRes = await throttledOpenAIFetchWithDots('https://api.openai.com/v1/chat/completions', {
               method: 'POST',
@@ -1425,7 +1451,7 @@
           }
           chatbox.removeChild(chatbox.lastChild);
           // --- Основной ответ через выбранное API ---
-          const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n- Renting apartments, cars, offices, and other items\n- Buying and selling property\n- Purchasing event tickets\n- Booking appointments with specialists and professionals\n\nIMPORTANT INSTRUCTIONS:\n1. For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n2. Include relevant details from the data such as addresses, descriptions, prices, ratings, contact information, and other useful information.\n3. Provide helpful context and explanations about the options.\n4. When the user confirms booking, respond as before.\n\nMake your responses informative and helpful, including all relevant details that would help the user make a decision.`;
+          const systemPrompt = `You are an AI assistant for a comprehensive booking and service platform. You have access to the following data:\n\n${JSON.stringify(currentData, null, 2)}\n\nYour task is to help users with:\n- Booking events and venues\n- Finding professionals and experts\n- Hiring contractors for services\n- Accessing various local services\n- Renting apartments, cars, offices, and other items\n- Buying and selling property\n- Purchasing event tickets\n- Booking appointments with specialists and professionals\n\nIMPORTANT INSTRUCTIONS:\n1. For each suggested option, you MUST include its hash from the data (e.g., hash: abc123). For every option, write a line like: hash: <hash>.\n2. Include relevant details from the data such as addresses, descriptions, prices, ratings, contact information, and other useful information.\n3. Provide helpful context and explanations about the options.\n4. DO NOT include technical JSON fields like "id", "type", "city", "hash" in your responses.\n5. Focus on user-friendly information like names, addresses, prices, descriptions, ratings, contact details.\n6. When the user confirms booking, respond as before.\n\nMake your responses informative and helpful, including all relevant details that would help the user make a decision.`;
           let reply = '';
           if (apiProvider === 'gemini') {
             const mainRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey, {
